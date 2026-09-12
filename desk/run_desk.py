@@ -6,6 +6,7 @@
     python3 desk/run_desk.py --status          print equity, positions, mode, halted
     python3 desk/run_desk.py --kill            flatten every book and halt the desk
     python3 desk/run_desk.py --resume          clear the halt (human decision)
+    python3 desk/run_desk.py --probe           tiny round-trip test trade (proves the wiring)
     python3 desk/run_desk.py --once --offline  synthetic market, no network (tests/dev)
 
 Mode (shadow | live) comes from desk/config.json. Live needs DESK_WALLET_KEY in
@@ -51,6 +52,7 @@ def main() -> int:
     g.add_argument("--status", action="store_true")
     g.add_argument("--kill", action="store_true")
     g.add_argument("--resume", action="store_true")
+    g.add_argument("--probe", action="store_true", help="tiny round-trip test trade to prove the wiring")
     ap.add_argument("--offline", action="store_true", help="synthetic market, no network")
     ap.add_argument("--no-publish", action="store_true")
     ap.add_argument("--config", default=None)
@@ -74,6 +76,12 @@ def main() -> int:
         after(desk, {"bar": "kill"}); return 0
     if args.resume:
         desk.resume(); print("resumed."); print(status(desk)); return 0
+    if args.probe:
+        r = desk.probe()
+        print(json.dumps(r, indent=1))
+        if r.get("tx_open"):
+            print(f"\nopen : https://solscan.io/tx/{r['tx_open']}\nclose: https://solscan.io/tx/{r['tx_close']}")
+        after(desk, {"bar": "probe"}); return 0 if r.get("ok") else 1
     if args.once:
         entry = desk.run_cycle()
         print(json.dumps({k: entry[k] for k in ("ts", "decision", "detail", "equity", "mode") if k in entry}, indent=1))

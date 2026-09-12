@@ -162,6 +162,33 @@ class Desk:
         self._journal({"type": "resume", "ts": int(time.time())})
         self.save()
 
+    # ------------------------------------------------------------ probe
+    def probe(self) -> dict:
+        """Connectivity check: open and immediately close the venue minimum on
+        the first book. Journaled as a SYSTEM probe, never as an agent trade.
+        Proves wallet, venue and desk are wired end to end."""
+        book = next(iter(self.books))
+        if self.venue.position(book):
+            return {"ok": False, "error": f"{book} already has a position; probe skipped"}
+        mark = self.venue.mark_price()
+        if not mark and isinstance(self.venue, ShadowVenue):
+            candles, _, _, _ = self._market()
+            if candles:
+                self.venue.set_mark(candles[-1].close)
+                mark = self.venue.mark_price()
+        if not mark:
+            return {"ok": False, "error": "no mark price from venue"}
+        qty = self.cfg.min_order
+        fill_in = self.venue.open(book, "long", qty, mark, mark * 0.97, 0.0)
+        closed = self.venue.close(book, self.venue.mark_price() or mark, 0.0, "connectivity probe")
+        closed.reason = "connectivity probe (system check, not an agent decision)"
+        entry = {"type": "probe", "ts": int(time.time()), "book": book, "mode": self.venue.mode,
+                 "open": fill_in.to_dict(), "closed": closed.to_dict()}
+        self._journal(entry)
+        self.save()
+        return {"ok": True, "mode": self.venue.mode, "qty": qty, "entry": fill_in.price,
+                "exit": closed.exit, "cost": closed.costs, "tx_open": fill_in.tx, "tx_close": closed.tx}
+
     # ----------------------------------------------------------- market
     def _market(self):
         """Live market bundle, or a synthetic one when offline (tests)."""
