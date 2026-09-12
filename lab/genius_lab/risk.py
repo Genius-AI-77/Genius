@@ -81,7 +81,7 @@ class RiskEngine:
                 f"VETO: cooldown after {MAX_CONSECUTIVE_LOSSES} consecutive "
                 f"losses (until bar {self.cooldown_until_bar})"])
         if self.broker.position_qty != 0:
-            return RiskDecision(False, ["VETO: position already open — one at a time"])
+            return RiskDecision(False, ["VETO: position already open, one at a time"])
         if p.confidence < MIN_CONFIDENCE:
             return RiskDecision(False, [
                 f"VETO: committee confidence {p.confidence:.2f} below floor "

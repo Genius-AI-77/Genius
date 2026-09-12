@@ -4,14 +4,11 @@ import { GMark, H2, Hi, Kicker, Pill, Section, Wrap } from "./ui";
 export function Ledger() {
   return (
     <Section id="ledger">
-      <Kicker num="09" label="The Ledger" />
+      <Kicker num="09" label="Build Log" />
       <H2>
-        What's <Hi>real</Hi> today.
+        Where the <Hi>build</Hi> is.
       </H2>
-      <p className="dek">
-        The honest ledger. We would rather lose your attention here than earn it dishonestly
-        somewhere else.
-      </p>
+      <p className="dek">Every piece of GENIUS, and its current state. Updated as things go live.</p>
       <div className="mt-9 overflow-x-auto rounded-lg border border-line bg-panel">
         <table className="w-full min-w-[620px] border-collapse font-mono text-[13.5px]">
           <thead>
@@ -65,9 +62,9 @@ export function Footer() {
             </div>
             <p className="max-w-[66ch] font-mono text-[12px] leading-[1.8] text-ink-3">
               <strong className="font-medium text-ink-2">
-                GENIUS is a research and community project.
+                GENIUS is a research project, built in public.
               </strong>{" "}
-              {disclaimer.replace("GENIUS is a research and community project. ", "")}
+              {disclaimer.replace("GENIUS is a research project, built in public. ", "")}
             </p>
           </div>
           <div>
@@ -91,20 +88,20 @@ export function Footer() {
           </div>
           <div>
             <h6 className="mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-3">
-              Status key
+              Build log key
             </h6>
             <ul className="list-none p-0 font-mono text-[13px]">
               <li className="mb-[11px]">
-                <Pill status="impl" /> shipped &amp; runnable
+                <Pill status="impl" /> running today
               </li>
               <li className="mb-[11px]">
-                <Pill status="sim" /> real code, synthetic data
+                <Pill status="sim" /> in progress
               </li>
               <li className="mb-[11px]">
-                <Pill status="plan" /> designed, unbuilt
+                <Pill status="plan" /> next phase
               </li>
               <li className="mb-[11px]">
-                <Pill status="block" /> needs a dependency
+                <Pill status="block" /> a later phase
               </li>
             </ul>
           </div>

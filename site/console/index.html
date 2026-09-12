@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GENIUS — Lab Console</title>
+<title>GENIUS Lab Console</title>
 <meta name="description" content="Live console for the GENIUS research lab: agent reports, decision journal, and after-cost results from the paper-traded experiment.">
 <meta name="theme-color" content="#060809">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
@@ -142,7 +142,7 @@ footer strong{color:var(--ink-2);font-weight:500}
 </div></div>
 
 <div class="banner"><div class="wrap">
-  <i>◆</i> Paper / simulated — no real capital, no live execution, not investment advice
+  <i>◆</i> Paper and simulated. No real capital, no live execution, not investment advice
 </div></div>
 
 <div class="wrap">
@@ -156,12 +156,12 @@ footer strong{color:var(--ink-2);font-weight:500}
     This console reads <code>data.js</code>, produced by the lab. Generate it, then reload:
     <br><code>python3 lab/run_demo.py</code><br><br>
     <span style="font:400 12.5px var(--mono);color:var(--ink-3)">
-      Opening this file directly from disk can also block the script — serve it instead with
+      Opening this file directly from disk can also block the script. Serve it instead with
       <code style="margin-top:0">python3 serve.py</code></span>
   </div>
 
   <main id="app" style="display:none">
-    <h2><b>01</b> Run metrics — after simulated costs</h2>
+    <h2><b>01</b> Run metrics, after simulated costs</h2>
     <div class="tiles" id="tiles"></div>
 
     <h2><b>02</b> Market &amp; equity</h2>
@@ -171,21 +171,21 @@ footer strong{color:var(--ink-2);font-weight:500}
         <div id="priceChart"></div><div class="tip" id="priceTip"></div>
       </div>
       <div class="mod chart" style="position:relative">
-        <h3><i style="background:var(--equity)"></i>Lab equity — paper, after costs</h3>
+        <h3><i style="background:var(--equity)"></i>Lab equity, paper, after costs</h3>
         <div id="equityChart"></div><div class="tip" id="equityTip"></div>
         <details><summary>View as data</summary><div class="dscroll" id="equityTable"></div></details>
       </div>
     </div>
 
-    <h2><b>03</b> Six minds — latest cycle reports</h2>
+    <h2><b>03</b> Six minds: latest cycle reports</h2>
     <div class="agents" id="agents"></div>
 
-    <h2><b>04</b> Decision journal — every cycle, including “no trade”</h2>
+    <h2><b>04</b> Decision journal: every cycle, including “no trade”</h2>
     <div class="tbl"><table id="journal"><thead><tr>
       <th>Bar</th><th>Price</th><th>Decision</th><th>Detail</th>
       <th>Tech</th><th>Flow</th><th>Fund</th></tr></thead><tbody></tbody></table></div>
 
-    <h2><b>05</b> Closed trades — P&amp;L after fees + slippage</h2>
+    <h2><b>05</b> Closed trades: P&amp;L after fees and slippage</h2>
     <div class="tbl"><table id="trades"><thead><tr>
       <th>Side</th><th>Qty</th><th>Entry</th><th>Exit</th>
       <th>P&amp;L</th><th>Costs</th><th>Exit reason</th></tr></thead><tbody></tbody></table></div>
@@ -193,7 +193,7 @@ footer strong{color:var(--ink-2);font-weight:500}
 </div>
 
 <footer><div class="wrap">
-  <strong>GENIUS Lab console — research demonstration only.</strong> All trading shown is paper or
+  <strong>GENIUS Lab console, research demonstration only.</strong> All trading shown is paper or
   simulated; no capital is deployed and nothing here is investment advice. Simulated results carry
   well-known biases and do not predict real outcomes. Data source and mode are printed at the top
   of this page. Agreement between agents is logged as context, never treated as proof of

@@ -107,7 +107,7 @@ class FundamentalAnalyst:
         for e in events:
             line = f"[{e['date']}] {e['headline']} (source: {e['source']}, bias {e['bias']:+.1f})"
             if e.get("matched"):
-                line += f" — terms: {', '.join(e['matched'])}"
+                line += f" (terms: {', '.join(e['matched'])})"
             findings.append(line)
         if not findings:
             findings = ["No directional headlines in the lookback window."]
@@ -153,7 +153,7 @@ class TechnicalAnalyst:
                          f"RSI {r:.0f} not oversold.",
                          f"Invalidation: close above swing high {swing_high:,.0f}."]
         else:
-            findings.append("No aligned trend structure — range conditions; stand aside.")
+            findings.append("No aligned trend structure, range conditions. Stand aside.")
             if r is not None:
                 findings.append(f"RSI {r:.0f}; SMA20/50 mixed.")
 
@@ -209,7 +209,7 @@ class OrderFlowAnalyst:
                             f"({'above' if poc > price else 'below'} price).")
         if absorption:
             findings.append(f"Possible absorption on {absorption[-1]['side']} side "
-                            f"(volume spike, compressed range) — caution on breakouts.")
+                            f"(volume spike, compressed range). Caution on breakouts.")
 
         if cum_delta > 0 and recent_delta > 0:
             stance, confidence = "long", 0.55
@@ -217,7 +217,7 @@ class OrderFlowAnalyst:
             stance, confidence = "short", 0.55
         else:
             stance, confidence = "flat", 0.3
-            findings.append("Delta conflicted across horizons — no flow edge.")
+            findings.append("Delta conflicted across horizons, no flow edge.")
         if absorption:
             confidence *= 0.7  # absorption against the move weakens conviction
 
@@ -241,7 +241,7 @@ class OrderFlowAnalyst:
             # depth agreeing with delta strengthens, disagreeing weakens
             if stance == "long" and imb < -0.2 or stance == "short" and imb > 0.2:
                 confidence *= 0.8
-                findings.append("Resting depth leans against the flow read — conviction reduced.")
+                findings.append("Resting depth leans against the flow read, so conviction is reduced.")
             elif stance != "flat" and abs(imb) > 0.2:
                 confidence = min(0.7, confidence + 0.1)
 
@@ -327,8 +327,8 @@ class ResearchAuditAgent:
                     f"expectancy after costs ${m['expectancy']:,.0f}.",
                     f"No-trade cycles: {m['no_trade']}; risk vetoes: {m['vetoes']}."]
         if m["trades"] >= 5 and m["expectancy"] < 0:
-            findings.append("FLAG: negative after-cost expectancy — strategy "
-                            "degradation; recommend halting new entries for review.")
+            findings.append("FLAG: negative after-cost expectancy, strategy "
+                            "degradation. Recommend halting new entries for review.")
         return AgentReport(
             agent=self.name, role=self.role, stance="flat", confidence=0.6,
             findings=findings, data=m,

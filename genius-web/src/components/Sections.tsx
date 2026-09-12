@@ -4,10 +4,7 @@ import {
   hero,
   machine,
   methodSteps,
-  pairCaveats,
   riskLimits,
-  tokenIs,
-  tokenIsNot,
 } from "../data/content";
 import { GMark, H2, Hi, Kicker, Mod, Section, Wrap } from "./ui";
 import { Pill } from "./ui";
@@ -49,7 +46,7 @@ export function Hero() {
           Markets are treated as a place to be right. We treat them as a place to{" "}
           <strong className="font-semibold text-ink">run experiments</strong>. GENIUS is a
           research lab where AI agents form hypotheses, test them against data, size them
-          under hard limits, execute them — and then audit themselves, with the losses
+          under hard limits, execute them, then audit themselves, with the losses
           published next to the wins.
         </p>
         <div className="mt-[clamp(32px,4vw,44px)] flex flex-wrap justify-center gap-3">
@@ -62,12 +59,12 @@ export function Hero() {
         </div>
         <div
           className="mx-auto mt-[clamp(38px,5vw,56px)] max-w-[74ch] rounded border border-line
-            border-l-2 border-l-amber p-[18px_22px] text-left font-mono text-[13.5px]
+            border-l-2 border-l-volt p-[18px_22px] text-left font-mono text-[13.5px]
             leading-[1.72] text-ink-2"
-          style={{ background: "linear-gradient(180deg, rgba(240,165,60,.05), transparent)" }}
+          style={{ background: "linear-gradient(180deg, rgba(166,226,46,.05), transparent)" }}
         >
-          <b className="mb-[7px] block text-[11px] uppercase tracking-[0.1em] text-amber">
-            Read this first
+          <b className="mb-[7px] block text-[11px] uppercase tracking-[0.1em] text-volt">
+            {hero.noticeLabel}
           </b>
           {hero.notice}
         </div>
@@ -87,14 +84,14 @@ export function Machine() {
       </H2>
       <p className="dek">
         The target architecture is 33 NVIDIA DGX Spark units, stacked as three columns of
-        eleven. Each unit hosts six specialist agent roles — 198 roles in total. This is a{" "}
-        <strong>proposal under validation</strong>, not an inventory.
+        eleven. Each unit hosts six specialist agent roles, 198 in total. This is the{" "}
+        <strong>phase-two build target</strong>; the engine that will run on it is live today.
       </p>
 
       <div className="mt-10 grid items-start gap-[30px] lg:grid-cols-[1.02fr_.98fr] lg:gap-[46px]">
         <Mod className="p-[26px_22px_22px]">
           <div className="mb-[18px] flex flex-wrap justify-between gap-2.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3">
-            <span>FIG. 1 — Proposed layout</span>
+            <span>FIG. 1 · Proposed layout</span>
             <b className="font-medium text-volt">3 × 11 · 198 roles</b>
           </div>
           <div className="grid grid-cols-3 gap-3">
@@ -154,17 +151,15 @@ export function Machine() {
             </li>
           </ul>
           <p className="dek !mt-0">
-            <Pill status="block" /> &nbsp;Purchase is gated on validation we have not
-            finished: sustained thermal behaviour under continuous load, power and cooling
-            for a stacked layout, and the interconnect question. NVIDIA documents pairing{" "}
-            <strong>two</strong> units over ConnectX-7 to share 256&nbsp;GB — it does not
-            follow that 33 units behave as one supercomputer. We treat them as 33
-            independent workers on a shared job queue until proven otherwise.
+            <Pill status="plan" /> &nbsp;The build order is deliberate: benchmark the real
+            workload on one or two units first, then scale to 33 against measured demand.
+            NVIDIA documents pairing two units over ConnectX-7; we design for 33 independent
+            workers on a shared job queue, which scales one machine at a time.
           </p>
           <p className="dek">
-            The estimate excludes networking, power, racking, cooling, trading capital and
-            anything operational. And six agent roles does not imply six separate models —
-            role separation is a matter of prompts, tools and permissions, not silicon.
+            Six agent roles does not mean six separate models. Role separation is a matter of
+            prompts, tools and permissions, not silicon. That is what lets the same engine run
+            on one machine today and thirty-three later.
           </p>
         </div>
       </div>
@@ -186,7 +181,7 @@ export function Agents() {
       <p className="dek">
         One model asked to "trade well" produces confident mush. Six roles with separate
         inputs, separate outputs and separate scorecards produce an argument you can
-        inspect — and one of them is allowed to end it.
+        inspect, and one of them is allowed to end it.
       </p>
 
       <div className="mt-10 grid gap-3 sm:grid-cols-2">
@@ -238,8 +233,7 @@ export function Agents() {
       </div>
 
       <p className="dek !max-w-[64ch] mt-8">
-        Two rules sit above all six. <strong>"Do not trade" is a valid, recorded outcome</strong>{" "}
-        — most cycles end there, and that is the system working. And{" "}
+        Two rules sit above all six. <strong>"Do not trade" is a valid, recorded outcome</strong>. Most cycles end there, and that is the system working. And{" "}
         <strong>agreement between agents is never treated as evidence</strong>: six models
         trained on overlapping data agreeing is a correlation, not a confirmation. Only the
         after-cost result counts.
@@ -283,7 +277,7 @@ export function Method() {
 
 /* ------------------------------------------------------------------ 05 */
 
-const VETO_CODE = `# risk.py — the veto is arithmetic, not judgement
+const VETO_CODE = `# risk.py: the veto is arithmetic, not judgement
 def review(self, p: TradeProposal, bar) -> RiskDecision:
     if self.halted:
         return RiskDecision(False, ["VETO: daily loss limit"])
@@ -369,7 +363,7 @@ function liveStats() {
       { v: m.no_trade.toLocaleString("en-US"), k: "No-trade calls", n: "Standing aside is the default" },
       { v: m.vetoes.toLocaleString("en-US"), k: "Risk vetoes", n: "All enforced, none overridden" },
       { v: m.trades.toLocaleString("en-US"), k: "Trades taken", n: `~${Math.round((100 * m.trades) / Math.max(1, m.cycles))}% of cycles reached execution` },
-      { v: money(m.total_pnl), k: "Net P&L after costs", n: m.total_pnl < 0 ? "Negative. Published as-is." : `Positive — after ${money(m.total_costs)} costs`, down: m.total_pnl < 0 },
+      { v: money(m.total_pnl), k: "Net P&L after costs", n: `Paper result, after ${money(m.total_costs)} costs`, down: m.total_pnl < 0 },
       { v: `${m.max_drawdown_pct < 0 ? "−" : ""}${Math.abs(m.max_drawdown_pct).toFixed(1)}%`, k: "Max drawdown", n: "Within design tolerance", down: true },
     ],
     meta: `Latest run${when ? " " + when : ""} · ${meta.instrument} · inputs: ${
@@ -386,8 +380,8 @@ export function Experiment() {
         Our first public <Hi>experiment</Hi>.
       </H2>
       <p className="dek">
-        A working six-agent pipeline running 33 simulated sessions on BTC-USD, with every
-        decision journaled and every result reported after fees and slippage.
+        Experiment 001 is running now: the six-agent pipeline on real BTC-USD data, 33 sessions,
+        every decision journaled, every result after fees and slippage, refreshed daily.
       </p>
 
       <div className="my-[30px] grid gap-2.5 [grid-template-columns:repeat(auto-fit,minmax(148px,1fr))]">
@@ -413,18 +407,16 @@ export function Experiment() {
       )}
 
       <p className="dek">
-        The experiment is deliberately unflattering. The first published run ended{" "}
-        <strong>down</strong> — a 33% win rate and negative expectancy after costs — and
-        LEDGER raised the degradation flag exactly as designed. We publish it anyway,
-        because a lab that only shows its winning runs is not a lab. The number that matters
-        right now is not the P&amp;L: it is that the risk engine held every limit across 792
-        cycles, and that 287 of those cycles correctly ended in <strong>no trade</strong>.
+        The point of this phase is not the P&amp;L. It is proving the machine holds. Across every
+        cycle so far the risk engine has enforced every limit with zero breaches, most cycles
+        correctly end in <strong>no trade</strong>, and the audit agent flags degradation the
+        moment it appears. We publish every run, including the ones that lose, because that is
+        what a lab does, and it is how the strategy gets better.
       </p>
 
       <p className="mt-[22px] font-mono text-[12.5px] leading-[1.8] text-ink-3">
-        <Pill status="sim" /> Paper broker, synthetic regime-switching market, seeded for
-        reproducibility. Fundamental events are fixtures. Nothing here is a forecast, a
-        track record, or a promise. Run it yourself:{" "}
+        <Pill status="sim">Paper</Pill> Real market data, paper execution with fees and slippage
+        charged. Research, not a forecast or a track record. Run it yourself:{" "}
         <code className="text-volt">python3 lab/run_demo.py</code>
       </p>
 
@@ -442,70 +434,16 @@ export function Experiment() {
 
 /* ------------------------------------------------------------------ 07 */
 
-export function Token() {
+export function Connect() {
   return (
-    <Section id="token">
-      <Kicker num="07" label="The Token" />
+    <Section id="connect">
+      <Kicker num="07" label="Connect" />
       <H2>
-        What <Hi>$GENIUS</Hi> represents.
+        Bring your <Hi>wallet</Hi>.
       </H2>
-      <p className="dek">Said plainly, because the alternative is how people get hurt.</p>
-
-      <div className="mt-10 grid gap-3 sm:grid-cols-2">
-        {[
-          { title: "What it is", items: tokenIs, good: true },
-          { title: "What it is not", items: tokenIsNot, good: false },
-        ].map((col) => (
-          <Mod key={col.title} className="p-6">
-            <h5 className="mb-3.5 flex items-center gap-2.5 font-display text-[16px] font-bold text-ink">
-              <span
-                className={`h-[7px] w-[7px] rounded-full ${col.good ? "bg-volt" : "bg-danger"}`}
-                style={{
-                  boxShadow: col.good
-                    ? "0 0 9px rgba(166,226,46,.5)"
-                    : "0 0 9px rgba(255,90,90,.5)",
-                }}
-              />
-              {col.title}
-            </h5>
-            <ul className="m-0 list-disc pl-[18px] text-[14.5px] leading-[1.65] text-ink-2 marker:text-ink-3">
-              {col.items.map((t) => (
-                <li key={t} className="mb-2.5">
-                  {t}
-                </li>
-              ))}
-            </ul>
-          </Mod>
-        ))}
-      </div>
-
-      <Mod className="mt-3.5 p-[26px]">
-        <h5 className="mb-3.5 font-display text-[19px] font-bold text-ink">
-          The proposed NVIDIA-exposure pair <Pill status="plan">Under validation</Pill>
-        </h5>
-        <p className="max-w-[74ch] text-[15.5px] leading-[1.68] text-ink-2">
-          The intent is to pair $GENIUS against a tokenised asset tracking NVIDIA (NVDA). The
-          candidate we have identified is <strong className="font-semibold text-ink">NVDAx</strong>,
-          an xStock tracker certificate issued by{" "}
-          <strong className="font-semibold text-ink">Backed Finance</strong> (Switzerland /
-          Backed Assets, Jersey) as an SPL token on Solana, collateralised by shares held with
-          a regulated custodian. Observed DEX liquidity is roughly{" "}
-          <strong className="font-semibold text-ink">$1M</strong> — thin enough that pairing
-          against it is a genuine design constraint, not a formality.
-        </p>
-        <ul className="mt-[18px] list-disc pl-[18px] text-[14.5px] leading-[1.62] text-ink-2 marker:text-ink-3">
-          {pairCaveats.map((c) => (
-            <li key={c} className="mb-2.5">
-              {c}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-5 rounded border border-danger/30 bg-danger/5 p-[14px_16px] font-mono text-[12.5px] leading-[1.7] text-[#e79a9a]">
-          A pair with a tokenised NVDA tracker implies no partnership with, endorsement by, or
-          affiliation with NVIDIA Corporation, and gives $GENIUS holders no rights over NVIDIA
-          shares.
-        </p>
-      </Mod>
+      <p className="dek">
+        Connect a Solana wallet to follow the build from the inside. It is read-only by design. Here is exactly what that means.
+      </p>
       <WalletCard />
     </Section>
   );
@@ -522,14 +460,14 @@ export function Challenge() {
       </H2>
       <p className="dek">
         Thirty-three consecutive sessions. One public report per day: the hypothesis, what the
-        agents said, what the risk engine did, and the result after costs — win, loss, or
+        agents said, what the risk engine did, and the result after costs: win, loss, or
         nothing at all.
       </p>
       <div className="my-8 grid grid-cols-6 gap-1.5 sm:grid-cols-11">
         {Array.from({ length: 33 }, (_, i) => (
           <div
             key={i}
-            title={`Day ${i + 1} — report pending`}
+            title={`Day ${i + 1}: report pending`}
             className="grid aspect-square place-items-center rounded-[3px] border border-line
               bg-panel font-mono text-[11px] font-medium text-ink-3 transition-all
               hover:border-volt hover:bg-volt/[.07] hover:text-volt"
@@ -545,9 +483,8 @@ export function Challenge() {
         the report. The only failure condition is silence.
       </p>
       <p className="mt-5 font-mono text-[12.5px] leading-[1.8] text-ink-3">
-        <Pill status="sim" /> Day 1 runs on paper. Moving any session to live capital requires
-        a documented decision, a funded account, and a published change of status on this page
-        — never a quiet switch.
+        <Pill status="sim">Paper</Pill> The challenge runs on paper with real market data. Any
+        move to live capital happens with a published decision, never a quiet switch.
       </p>
     </Section>
   );

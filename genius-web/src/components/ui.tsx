@@ -18,7 +18,7 @@ const STATUS_CLASS: Record<Status, string> = {
   impl: "text-volt border-volt/40 bg-volt/10",
   sim: "text-amber border-amber/40 bg-amber/10",
   plan: "text-cyan border-cyan/35 bg-cyan/10",
-  block: "text-danger border-danger/40 bg-danger/10",
+  block: "text-ink-2 border-line-2 bg-white/[.03]",
 };
 
 /** Status chip — implemented / simulated / planned / blocked. */

@@ -6,7 +6,7 @@ import {
   Hero,
   Machine,
   Method,
-  Token,
+  Connect,
   Veto,
 } from "./components/Sections";
 import { Footer, Ledger } from "./components/Ledger";
@@ -23,7 +23,7 @@ export default function App() {
       <Method />
       <Veto />
       <Experiment />
-      <Token />
+      <Connect />
       <Challenge />
       <Ledger />
       <Footer />

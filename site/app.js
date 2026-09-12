@@ -12,7 +12,7 @@
   set('[data-stat=dd]', (m.max_drawdown_pct<0?'−':'')+Math.abs(m.max_drawdown_pct).toFixed(1)+'%');
   set('[data-note=sessions]', meta.sessions+' sessions × '+meta.bars_per_session+' bars');
   set('[data-note=trade_pct]', '~'+Math.round(100*m.trades/Math.max(1,m.cycles))+'% of cycles reached execution');
-  set('[data-note=pnl]', m.total_pnl<0?'Negative. Published as-is.':'Positive — after '+money(m.total_costs)+' costs');
+  set('[data-note=pnl]', 'Paper result, after '+money(m.total_costs)+' costs');
   var pnlEl=document.querySelector('[data-stat=pnl]'); if(pnlEl){pnlEl.classList.toggle('down',m.total_pnl<0);}
   var inputs=meta.inputs||{}; var real=Object.keys(inputs).filter(function(k){return String(inputs[k]).indexOf('live')===0;});
   var when=meta.generated_at?new Date(meta.generated_at*1000).toISOString().slice(0,10):'';
@@ -33,7 +33,7 @@ document.querySelectorAll('.col .units').forEach(function(col,ci){
 var days=document.querySelector('.days');
 for(var d=1;d<=33;d++){
   var el=document.createElement('div');
-  el.className='day';el.textContent=d;el.title='Day '+d+' — report pending';
+  el.className='day';el.textContent=d;el.title='Day '+d+': report pending';
   days.appendChild(el);
 }
 

@@ -19,7 +19,7 @@
     ['Expectancy',money(m.expectancy),m.expectancy,'per trade, after costs'],
     ['Max drawdown',(m.max_drawdown_pct<0?'−':'')+Math.abs(m.max_drawdown_pct).toFixed(1)+'%',
       m.max_drawdown_pct,'on equity curve'],
-    ['Risk vetoes',m.vetoes,null,'final — code-enforced'],
+    ['Risk vetoes',m.vetoes,null,'final, enforced in code'],
     ['No-trade cycles',m.no_trade,null,'of '+m.cycles+' cycles']
   ];
   document.getElementById('tiles').innerHTML=tiles.map(function(t){

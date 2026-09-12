@@ -53,7 +53,7 @@ class Lab:
         confidence = (tech.confidence + flow.confidence) / 2
         if fund.stance == tech.stance:
             confidence = min(1.0, confidence + 0.1)
-        thesis = (f"{tech.stance.upper()} — trend + order-flow aligned; "
+        thesis = (f"{tech.stance.upper()}: trend and order flow aligned; "
                   f"invalidation {tech.invalidation:,.0f}")
         return TradeProposal(side=tech.stance, price=price,
                              invalidation=tech.invalidation,

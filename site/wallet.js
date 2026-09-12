@@ -9,7 +9,7 @@
  *
  * What this file cannot do, and no future edit may add:
  *   • request a transaction signature of any kind. The site therefore has no
- *     way to move funds or approve token transfers — the mechanism behind
+ *     way to move funds or approve transfers — the mechanism behind
  *     every "wallet drainer" scam. A test in lab/tests fails the build if the
  *     transaction-signing method names ever appear in this codebase.
  *   • see, ask for, or store a private key or seed phrase. There is no such
@@ -201,7 +201,6 @@
            esc(short(state.address)) + '</code></div>';
       h += '<div class="wp-row"><span>SOL balance</span><b>' +
            (state.balance === null ? '…' : esc(state.balance.toFixed(4)) + ' SOL') + '</b></div>';
-      h += '<div class="wp-row"><span>$GENIUS balance</span><b class="wp-dim">no token exists yet</b></div>';
       h += '<div class="wp-row"><span>Ownership</span><b>' +
            (state.verified === 'yes' ? '<span class="wp-ok">Verified ✓</span>' :
             state.verified === 'no' ? '<span class="wp-bad">Signature did not verify</span>' :
@@ -230,7 +229,7 @@
          '<li>We never ask for a seed phrase or private key. Nobody legitimate does.</li>' +
          '<li>This site never requests a transaction signature, so it cannot move funds or approve transfers. That rule is enforced by a test in the codebase.</li>' +
          '<li>Only your public address is read. There is no server; nothing is stored anywhere but your browser.</li>' +
-         '<li>There is nothing to claim, buy or mint. If a page that looks like this one asks you to, it is not us.</li>' +
+         '<li>This site will never ask you to claim, buy or mint anything. If a page that looks like this one does, it is not us.</li>' +
          '</ul>';
     panel.innerHTML = h;
   }

@@ -13,18 +13,18 @@
 export type Status = "impl" | "sim" | "plan" | "block";
 
 export const STATUS_LABEL: Record<Status, string> = {
-  impl: "Implemented",
-  sim: "Simulated",
-  plan: "Planned",
-  block: "Blocked",
+  impl: "Live",
+  sim: "Building",
+  plan: "Next",
+  block: "Later",
 };
 
 export const tickerItems = [
-  "Pre-launch — nothing is for sale",
-  "No token exists yet",
-  "Hardware is proposed, not purchased",
-  "All trading shown is paper / simulated",
-  "Not investment advice",
+  "Everyone is a Scientist",
+  "Build phase 01, building in public",
+  "Six agent roles, one binding veto",
+  "Real market data, every day",
+  "Every decision journaled, wins and losses",
 ];
 
 export const navLinks = [
@@ -33,17 +33,18 @@ export const navLinks = [
   { href: "#method", label: "Method" },
   { href: "#veto", label: "Veto" },
   { href: "#experiment", label: "Experiment" },
-  { href: "#token", label: "$GENIUS" },
-  { href: "#ledger", label: "Status" },
+  { href: "#connect", label: "Connect" },
+  { href: "#ledger", label: "Build log" },
 ];
 
 export const hero = {
   kicker: { num: "01", label: "The Vision" },
   headline: ["Everyone is", "a Scientist"],
   sub: "Curiosity is the starting point.",
-  lede: "Markets are treated as a place to be right. We treat them as a place to run experiments. GENIUS is a research lab where AI agents form hypotheses, test them against data, size them under hard limits, execute them — and then audit themselves, with the losses published next to the wins.",
+  lede: "Markets are treated as a place to be right. We treat them as a place to run experiments. GENIUS is a research lab where AI agents form hypotheses, test them against data, size them under hard limits, execute them, then audit themselves, with the losses published next to the wins.",
+  noticeLabel: "Build phase 01",
   notice:
-    "GENIUS is early. The token has not launched. The hardware has not been bought. Every result on this site comes from a paper-traded simulation you can run yourself. We publish the boundary between what is built and what is merely intended — and we keep it accurate.",
+    "GENIUS is being built in public. The research engine runs today on real market data; the cluster, the live desk and everything after are the next phases. Everything on this site is published as it happens. The build log below is updated as each piece goes live.",
 };
 
 export const machine = {
@@ -52,9 +53,9 @@ export const machine = {
     { k: "Unit", v: "NVIDIA DGX Spark (GB10)" },
     { k: "Unified memory / unit", v: "128 GB LPDDR5X" },
     { k: "Units × agent roles", v: "33 × 6 = 198" },
-    { k: "Street price observed", v: "$3,999 – $4,699" },
+    { k: "Street price observed", v: "$3,999 to $4,699" },
   ],
-  total: { k: "Hardware estimate (33 units)", v: "~$132k – $155k" },
+  total: { k: "Hardware estimate (33 units)", v: "$132k to $155k" },
   departments: ["Discovery", "Validation", "Operations"],
 };
 
@@ -84,7 +85,7 @@ export const agents: Agent[] = [
     name: "EUCLID",
     role: "Technical Analyst",
     accent: "cyan",
-    body: "Market structure, trend and levels — and most importantly, the exact price at which the thesis is simply wrong.",
+    body: "Market structure, trend and levels, and above all the exact price at which the thesis is simply wrong.",
     io: [
       { label: "In", value: "OHLCV history" },
       { label: "Out", value: "structure, levels, invalidation price" },
@@ -118,7 +119,7 @@ export const agents: Agent[] = [
     name: "LEDGER",
     role: "Research & Audit Analyst",
     accent: "volt",
-    body: "Journals every decision — including the decision to do nothing — and grades them after costs. Flags strategy decay before the equity curve does.",
+    body: "Journals every decision, including the decision to do nothing, and grades them after costs. Flags strategy decay before the equity curve does.",
     io: [
       { label: "In", value: "full decision journal, fills, outcomes" },
       { label: "Out", value: "after-cost expectancy, decay flags" },
@@ -130,11 +131,11 @@ export const agents: Agent[] = [
     role: "Risk Manager · binding authority",
     accent: "danger",
     binding: true,
-    body: "Exposure, position size, loss limits. VETO does not offer an opinion — it returns approve or reject, and reject is final. Its limits are arithmetic in code, not instructions in a prompt, so no model can talk its way past them. An agent that wants a bigger position can want it indefinitely.",
+    body: "Exposure, position size, loss limits. VETO does not offer an opinion. It returns approve or reject, and reject is final. Its limits are arithmetic in code, not instructions in a prompt, so no model can talk its way past them. An agent that wants a bigger position can want it indefinitely.",
     io: [
       { label: "In", value: "proposal, equity, open risk, session P&L" },
       { label: "Out", value: "APPROVE(size, stop) or REJECT(reason)" },
-      { label: "Scored on", value: "limit breaches — target zero" },
+      { label: "Scored on", value: "limit breaches, target zero" },
       { label: "Override path", value: "none exists" },
     ],
   },
@@ -157,7 +158,7 @@ export const methodSteps = [
     body: "A proposal forms only when structure and flow agree and fundamentals do not strongly object. Otherwise: no trade.",
   },
   {
-    n: "STEP 04 — GATE",
+    n: "STEP 04 · GATE",
     title: "Risk review",
     body: "VETO sizes the position from the distance to invalidation, or rejects it. Code, not judgement.",
     gate: true,
@@ -165,7 +166,7 @@ export const methodSteps = [
   {
     n: "STEP 05",
     title: "Execute & audit",
-    body: "HERMES fills it with fees and slippage charged. LEDGER journals the cycle — trade or not — and scores it after costs.",
+    body: "HERMES fills it with fees and slippage charged. LEDGER journals the cycle, trade or not, and scores it after costs.",
   },
 ];
 
@@ -189,25 +190,6 @@ export const experimentStats = [
   { v: "−4.4%", k: "Max drawdown", n: "Within design tolerance", down: true },
 ];
 
-export const tokenIs = [
-  "A community token attached to a research project that publishes its work",
-  "A coordination and attention mechanism for people who want to watch a lab operate in the open",
-  "A cultural bet on the idea that everyone is a scientist",
-];
-
-export const tokenIsNot = [
-  "Not a share, a security, or a claim on any revenue",
-  "Not ownership of, or any right to, the hardware",
-  "Not a claim on trading profits, and not backed by them",
-  "Not a promise of value, liquidity, or return",
-];
-
-export const pairCaveats = [
-  "Still to verify: exact mint address, current issuer terms, transfer restrictions, redemption mechanics, and whether a $GENIUS pair is permitted under those terms.",
-  "Thin quote-asset liquidity means our own pool would likely dominate price discovery on that pair — a risk to price in, not to ignore.",
-  "This is an architectural intention. It has not been implemented.",
-];
-
 export const ledgerRows: { component: string; status: Status; note: string }[] = [
   { component: "Six-agent research pipeline", status: "impl", note: "Runs locally, deterministic, reproducible" },
   { component: "Risk engine & veto", status: "impl", note: "Pure code, enforced on every cycle" },
@@ -215,18 +197,16 @@ export const ledgerRows: { component: string; status: Status; note: string }[] =
   { component: "Decision journal & audit metrics", status: "impl", note: "JSONL, one entry per cycle" },
   { component: "Lab console & this site", status: "impl", note: "Static, no backend required" },
   { component: "Market data", status: "impl", note: "Live BTC-USD candles, trade tape and level-2 depth from a public exchange API; synthetic fallback if unreachable" },
-  { component: "Fundamental news inputs", status: "impl", note: "Live RSS headlines, keyword-scored, time-gated so no bar sees its future" },
-  { component: "LLM reasoning layer", status: "block", note: "Agents are rule-based today. Needs an API key; models will interpret, never override limits" },
+  { component: "Fundamental news inputs", status: "impl", note: "Live headlines, scored and time-gated so no bar sees its future" },
+  { component: "LLM reasoning layer", status: "plan", note: "Next up. Models will read and interpret; every number and limit stays in code" },
   { component: "Order-book depth / DOM", status: "impl", note: "Level-2 snapshot each run, recorded to disk; continuous streaming is planned" },
-  { component: "Daily automated run", status: "impl", note: "GitHub Actions: tests, live run, commit, redeploy — no servers, no keys" },
-  { component: "Wallet connect (Solana)", status: "impl", note: "Read-only: public address, balance, message-signature ownership proof. Never requests a transaction signature — enforced by a build test" },
+  { component: "Daily automated run", status: "impl", note: "GitHub Actions: tests, live run, commit, redeploy. No servers, no keys" },
+  { component: "Wallet connect (Solana)", status: "impl", note: "Read-only: public address, balance, message-signature ownership proof. Never requests a transaction signature, enforced by a build test" },
   { component: "Footprint & replay tooling", status: "plan", note: "Studied against public references; nothing proprietary copied" },
-  { component: "Licensed futures MBO data", status: "block", note: "Needs a vendor contract and exchange fees" },
-  { component: "33× DGX Spark cluster", status: "block", note: "Not purchased; power, cooling and interconnect unvalidated" },
-  { component: "Live execution with real capital", status: "block", note: "Needs venue, keys, capital and compliance review" },
-  { component: "$GENIUS token", status: "block", note: "Does not exist. No sale, no presale, no allocation." },
-  { component: "NVDA-exposure trading pair", status: "block", note: "Candidate identified; terms and liquidity unverified" },
+  { component: "Futures order-flow data", status: "block", note: "Phase three, once the edge is demonstrated on the current market" },
+  { component: "33× DGX Spark cluster", status: "block", note: "Phase two. Benchmark on one or two units, then scale to 33" },
+  { component: "Live execution", status: "block", note: "After validation: out-of-sample edge across two market regimes first" },
 ];
 
 export const disclaimer =
-  "GENIUS is a research and community project. Nothing on this page is investment, financial, legal or tax advice, an offer to sell, or a solicitation to buy any asset. All performance shown is simulated on paper with no capital at risk; simulated results carry well-known biases and do not predict real outcomes. Hardware described is proposed, not owned. No token has launched, and any token that launches will carry no ownership, revenue, profit or governance rights over anything described here. NVIDIA, DGX and DGX Spark are trademarks of NVIDIA Corporation; GENIUS is not affiliated with, endorsed by, or partnered with NVIDIA. Other platforms referenced are studied as public prior art only — no proprietary technology is copied and no integration is implied. Digital assets are volatile and you can lose everything you put in.";
+  "GENIUS is a research project, built in public. Nothing on this page is investment, financial, legal or tax advice. Performance shown is paper research on real market data with no capital at risk; research results do not predict real outcomes. Hardware described is the build target for a later phase. NVIDIA, DGX and DGX Spark are trademarks of NVIDIA Corporation; GENIUS is not affiliated with, endorsed by, or partnered with NVIDIA. Other platforms referenced are studied as public prior art only.";

@@ -114,7 +114,6 @@ export function WalletButton() {
                   onClick={() => navigator.clipboard?.writeText(conn.address)}>{short(conn.address)}</code>
               </Row>
               <Row k="SOL balance"><b className="font-medium text-ink">{balance === null ? "…" : `${balance.toFixed(4)} SOL`}</b></Row>
-              <Row k="$GENIUS balance"><b className="font-medium text-ink-3">no token exists yet</b></Row>
               <Row k="Ownership">
                 <b className="font-medium text-ink">
                   {verified === "yes" ? <span className="text-volt">Verified ✓</span>
@@ -154,7 +153,7 @@ export function WalletButton() {
             <li className="mb-1.5">We never ask for a seed phrase or private key. Nobody legitimate does.</li>
             <li className="mb-1.5">This site never requests a transaction signature, so it cannot move funds or approve transfers. That rule is enforced by a test in the codebase.</li>
             <li className="mb-1.5">Only your public address is read. There is no server; nothing is stored anywhere but your browser.</li>
-            <li>There is nothing to claim, buy or mint. If a page that looks like this one asks you to, it is not us.</li>
+            <li>This site will never ask you to claim, buy or mint anything. If a page that looks like this one does, it is not us.</li>
           </ul>
         </div>
       )}
@@ -171,23 +170,23 @@ function Row({ k, children }: { k: string; children: React.ReactNode }) {
   );
 }
 
-/** The in-page "Connect a wallet" card for the Token section. */
+/** The in-page "Connect a wallet" card for the Connect section. */
 export function WalletCard() {
   return (
-    <div className="mod mt-3.5 p-[26px]">
+    <div className="mod mt-9 p-[26px]">
       <h5 className="mb-3.5 font-display text-[19px] font-bold text-ink">
-        Connect a wallet{" "}
+        What connecting does{" "}
         <span className="inline-block rounded-[3px] border border-volt/40 bg-volt/10 px-2 py-[3px] align-[1px] font-mono text-[9.5px] font-semibold uppercase tracking-[0.14em] text-volt">Read-only</span>
       </h5>
       <p className="max-w-[74ch] text-[15.5px] leading-[1.68] text-ink-2">
-        You can connect a Solana wallet now. It does exactly three things: shows your public address,
-        shows your SOL balance, and — if you choose — asks your wallet to sign a message you can read in
-        full, proving you control the address. That is all it can ever do.
+        Three things, and only three: it shows your public address, shows your SOL balance, and, if you
+        choose, asks your wallet to sign a message you can read in full, proving you control the
+        address. That is all it can ever do.
       </p>
       <ul className="mt-[18px] list-disc pl-[18px] text-[14.5px] leading-[1.62] text-ink-2 marker:text-ink-3">
-        <li className="mb-2.5">This site <strong className="font-semibold text-ink">never requests a transaction signature</strong>. It cannot move funds or approve token transfers — the mechanism behind every wallet-drainer scam. A test in the codebase fails the build if that code ever appears.</li>
+        <li className="mb-2.5">This site <strong className="font-semibold text-ink">never requests a transaction signature</strong>. It cannot move funds or approve transfers, which is the mechanism behind every wallet-drainer scam. A test in the codebase fails the build if that code ever appears.</li>
         <li className="mb-2.5">Your private key and seed phrase never leave your wallet. There is no code path here that could see them, and no one legitimate will ever ask for them.</li>
-        <li>There is nothing to claim, buy, mint or allowlist. If a page that looks like this one asks you to, it is not us.</li>
+        <li>This site will never ask you to claim, buy or mint anything. If a page that looks like this one does, it is not us.</li>
       </ul>
       <p className="mt-4">
         <button type="button" className="btn btn-solid" onClick={() => document.getElementById("wallet-btn")?.click()}>
