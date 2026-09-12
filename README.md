@@ -37,7 +37,8 @@ Outputs:
 Run the tests:
 
 ```bash
-python3 -m unittest discover -s lab/tests -v
+python3 -m unittest discover -s lab/tests -t lab -v
+python3 -m unittest discover -s desk/tests -t desk -v
 ```
 
 ---
@@ -60,6 +61,8 @@ lab/                      the research pipeline
 site/                     the deployable folder (see DEPLOY.md)
 ├── index.html            landing page
 └── console/index.html    lab console
+
+desk/                     the live runner: three books, shadow or Drift, kill switch (see desk/README.md)
 
 docs/
 ├── ARCHITECTURE.md       product synthesis, system design, agent contracts, stack

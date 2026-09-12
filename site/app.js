@@ -14,6 +14,10 @@
   set('[data-note=trade_pct]', '~'+Math.round(100*m.trades/Math.max(1,m.cycles))+'% of cycles reached execution');
   set('[data-note=pnl]', 'Paper result, after '+money(m.total_costs)+' costs');
   var pnlEl=document.querySelector('[data-stat=pnl]'); if(pnlEl){pnlEl.classList.toggle('down',m.total_pnl<0);}
+  var ex=meta.execution, exl=document.querySelector('[data-exec-line]');
+  if(exl){ exl.textContent = ex==='live' ? 'Live execution on Drift Protocol. Every fill is on-chain.'
+         : ex==='shadow' ? 'Shadow execution for now: real market, real decisions, paper fills. Real capital is next.'
+         : 'Paper execution for now; real capital is the next phase.'; }
   var inputs=meta.inputs||{}; var real=Object.keys(inputs).filter(function(k){return String(inputs[k]).indexOf('live')===0;});
   var when=meta.generated_at?new Date(meta.generated_at*1000).toISOString().slice(0,10):'';
   set('#run-meta', 'Latest run'+(when?' '+when:'')+' · '+meta.instrument+' · inputs: '+

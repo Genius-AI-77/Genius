@@ -115,3 +115,13 @@
 .fl-st{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;padding:2px 6px;border-radius:3px;border:1px solid #2b3438;color:#616c6f}
 .fl-st-long{color:#a6e22e;border-color:rgba(166,226,46,.4)}.fl-st-short{color:#ff5a5a;border-color:rgba(255,90,90,.4)}.fl-st-on{color:#35d6e8;border-color:rgba(53,214,232,.35)}
 .fl-agents p{grid-column:1/-1;color:#616c6f;font-size:11px;line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+
+.fl-halted{color:#ff5a5a;border-color:#ff5a5a;background:rgba(255,90,90,.12)}
+.fl-pos.fl-halt{color:#ff5a5a;border-color:rgba(255,90,90,.4);margin-bottom:8px}
+.fl-board{display:grid;gap:6px}
+.fl-book{display:grid;grid-template-columns:16px 58px 1fr auto;gap:2px 8px;align-items:baseline;border:1px solid #2b3438;border-radius:6px;padding:8px 10px;background:#0b0f11;font:400 12px 'IBM Plex Mono',ui-monospace,monospace}
+.fl-book .fl-rank{color:#616c6f;font-size:10px}
+.fl-book b{color:#f0f3f2;font:700 12.5px 'Archivo',ui-sans-serif,sans-serif}
+.fl-book-eq{color:#9aa5a7}
+.fl-book em{grid-column:2/-1;font-style:normal;font-size:11px;color:#616c6f}
+.fl-dim{color:#616c6f}

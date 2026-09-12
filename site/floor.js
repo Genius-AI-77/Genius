@@ -118,6 +118,7 @@
   var DOOR = { x: 344, y: 36, w: 30, h: 66 };
 
   function money(v) { return (v < 0 ? '-$' : '$') + Math.abs(Math.round(v)).toLocaleString('en-US'); }
+  function money2(v) { var a = Math.abs(v); return (v < 0 ? '-$' : '$') + (a < 1000 ? a.toFixed(2) : Math.round(a).toLocaleString('en-US')); }
 
   function drawRoom(ctx, D, t) {
     var d = D.desk || {}, m = D.meta || {}, stances = d.stances || {};
@@ -142,8 +143,8 @@
     ctx.fillStyle = C.frame; ctx.fillRect(sx - 2, sy - 2, sw + 4, sh + 4);
     ctx.fillStyle = C.screen; ctx.fillRect(sx, sy, sw, sh);
     text(ctx, 'GENIUS DESK', sx + 4, sy + 4, C.ink2);
-    var tag = m.execution === 'live' ? 'LIVE' : m.execution === 'shadow' ? 'SHADOW' : 'PAPER';
-    text(ctx, tag, sx + sw - textW(tag) - 4, sy + 4, m.execution === 'live' ? C.volt : C.amber);
+    var tag = d.halted ? 'HALTED' : m.execution === 'live' ? 'LIVE' : m.execution === 'shadow' ? 'SHADOW' : 'PAPER';
+    text(ctx, tag, sx + sw - textW(tag) - 4, sy + 4, d.halted ? C.red : m.execution === 'live' ? C.volt : C.amber);
     ctx.fillStyle = C.trim; ctx.fillRect(sx + 4, sy + 11, sw - 8, 1);
     text(ctx, 'EQUITY', sx + 4, sy + 15, C.ink2);
     text(ctx, money(d.equity || 0), sx + 4, sy + 22, C.ink);
@@ -151,9 +152,21 @@
     text(ctx, 'SESSION', sx + 4, sy + 31, C.ink2);
     text(ctx, (sp >= 0 ? '+' : '') + money(sp), sx + 4, sy + 38, sp >= 0 ? C.volt : C.red);
     var pos = d.position;
-    text(ctx, 'POSITION', sx + 4, sy + 47, C.ink2);
-    text(ctx, pos ? (pos.side.toUpperCase() + ' ' + (pos.unrealized >= 0 ? '+' : '') + money(pos.unrealized)) : 'FLAT', sx + 4, sy + 54,
-         pos ? (pos.unrealized >= 0 ? C.volt : C.red) : C.dim);
+    if (d.books && d.books.length) {
+      // three books: name + total P&L, the leaderboard in miniature
+      var bs = d.books.slice().sort(function (a, b) { return b.total_pnl - a.total_pnl; });
+      for (var bi = 0; bi < Math.min(3, bs.length); bi++) {
+        var bk = bs[bi], yy = sy + 47 + bi * 6;
+        text(ctx, bk.name, sx + 4, yy, C.ink2);
+        var pv = (bk.total_pnl >= 0 ? '+' : '') + money2(bk.total_pnl);
+        text(ctx, pv, sx + 34, yy, bk.total_pnl > 0 ? C.volt : bk.total_pnl < 0 ? C.red : C.dim);
+        if (bk.position) text(ctx, bk.position.side === 'long' ? '>' : '<', sx + 76, yy, bk.position.side === 'long' ? C.volt : C.red);
+      }
+    } else {
+      text(ctx, 'POSITION', sx + 4, sy + 47, C.ink2);
+      text(ctx, pos ? (pos.side.toUpperCase() + ' ' + (pos.unrealized >= 0 ? '+' : '') + money(pos.unrealized)) : 'FLAT', sx + 4, sy + 54,
+           pos ? (pos.unrealized >= 0 ? C.volt : C.red) : C.dim);
+    }
     // sparkline of the last 120 equity points
     var eq = (D.equity_curve || []).slice(-120);
     if (eq.length > 1) {
@@ -263,12 +276,27 @@
   function panel(el, D) {
     var d = D.desk || {}, m = D.meta || {}, pos = d.position, sp = d.session_pnl || 0;
     var exec = m.execution === 'live' ? ['LIVE EXECUTION', 'fl-live'] : m.execution === 'shadow' ? ['SHADOW MODE', 'fl-shadow'] : ['PAPER EXECUTION', 'fl-paper'];
+    if (d.halted) exec = ['HALTED', 'fl-halted'];
     var roles = { ATLAS: 'Fundamentals', EUCLID: 'Technicals', FLUX: 'Order flow', VETO: 'Risk', HERMES: 'Execution', LEDGER: 'Audit' };
     var h = '<div class="fl-head"><span class="fl-badge fl-market">Live market</span><span class="fl-badge ' + exec[1] + '">' + exec[0] + '</span>' +
             '<span class="fl-when">Last cycle ' + (m.last_bar_ts ? esc(ago(m.last_bar_ts)) : '') + '</span></div>';
-    h += '<div class="fl-nums"><div><span>Equity</span><b>' + money(d.equity || 0) + '</b></div>' +
-         '<div><span>Session</span><b class="' + (sp >= 0 ? 'fl-up' : 'fl-down') + '">' + (sp >= 0 ? '+' : '') + money(sp) + '</b></div></div>';
-    if (pos) {
+    h += '<div class="fl-nums"><div><span>Equity</span><b>' + money2(d.equity || 0) + '</b></div>' +
+         '<div><span>Session</span><b class="' + (sp >= 0 ? 'fl-up' : 'fl-down') + '">' + (sp >= 0 ? '+' : '') + money2(sp) + '</b></div></div>';
+    if (d.halted) h += '<div class="fl-pos fl-halt">DESK HALTED: ' + esc(d.halt_reason || 'kill switch') + '</div>';
+    if (d.books && d.books.length) {
+      var sorted = d.books.slice().sort(function (a, b) { return b.total_pnl - a.total_pnl; });
+      h += '<div class="fl-board">';
+      sorted.forEach(function (bk, i) {
+        var p2 = bk.position;
+        h += '<div class="fl-book"><span class="fl-rank">' + (i + 1) + '</span><b>' + esc(bk.name) + '</b>' +
+             '<span class="fl-book-eq">' + money2(bk.equity) + '</span>' +
+             '<span class="' + (bk.total_pnl > 0 ? 'fl-up' : bk.total_pnl < 0 ? 'fl-down' : 'fl-dim') + '">' + (bk.total_pnl >= 0 ? '+' : '') + money2(bk.total_pnl) + '</span>' +
+             '<em>' + (p2 ? ('<span class="' + (p2.side === 'long' ? 'fl-up' : 'fl-down') + '">' + p2.side + '</span> ' + esc(p2.qty) + ' @ ' + money(p2.entry) +
+                              ' <span class="' + (p2.unrealized >= 0 ? 'fl-up' : 'fl-down') + '">' + (p2.unrealized >= 0 ? '+' : '') + money2(p2.unrealized) + '</span>')
+                          : esc(bk.last_decision === 'VETOED' ? 'vetoed' : 'flat')) + '</em></div>';
+      });
+      h += '</div>';
+    } else if (pos) {
       h += '<div class="fl-pos"><div class="fl-pos-h"><b class="' + (pos.side === 'long' ? 'fl-up' : 'fl-down') + '">' + pos.side.toUpperCase() + '</b> ' +
            esc(pos.qty) + ' BTC <span class="' + (pos.unrealized >= 0 ? 'fl-up' : 'fl-down') + '">' + (pos.unrealized >= 0 ? '+' : '') + money(pos.unrealized) + '</span></div>' +
            '<div class="fl-pos-r"><span>Entry</span><b>' + money(pos.entry) + '</b><span>Mark</span><b>' + money(pos.mark) + '</b>' +

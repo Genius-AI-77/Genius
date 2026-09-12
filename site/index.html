@@ -289,6 +289,16 @@ pre.code{background:#000;border:1px solid var(--line);border-radius:8px;padding:
 .fl-dec span{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase}
 .fl-dec b{font-weight:600;color:var(--ink)}.fl-dec i{font-style:normal;color:var(--ink-2)}
 .fl-ENTERED{color:var(--cyan)!important}.fl-VETOED{color:var(--red)!important}.fl-HOLDING{color:var(--volt)!important}
+.fl-halted{color:var(--red);border-color:var(--red);background:rgba(255,90,90,.12)}
+.fl-pos.fl-halt{color:var(--red);border-color:rgba(255,90,90,.4);margin-bottom:8px}
+.fl-board{display:grid;gap:6px}
+.fl-book{display:grid;grid-template-columns:16px 58px 1fr auto;gap:2px 8px;align-items:baseline;
+  border:1px solid var(--line-2);border-radius:6px;padding:8px 10px;background:#0b0f11;font:400 12px var(--mono)}
+.fl-book .fl-rank{color:var(--ink-3);font-size:10px}
+.fl-book b{color:var(--ink);font:700 12.5px var(--disp)}
+.fl-book-eq{color:var(--ink-2)}
+.fl-book em{grid-column:2/-1;font-style:normal;font-size:11px;color:var(--ink-3)}
+.fl-dim{color:var(--ink-3)}
 .fl-agents{list-style:none;margin:10px 0 0;padding:10px 0 0;border-top:1px solid var(--line);display:grid;gap:7px}
 .fl-agents li{display:grid;grid-template-columns:58px 1fr auto;gap:2px 8px;align-items:baseline;font:400 11.5px var(--mono)}
 .fl-agents b{color:var(--ink);font-weight:700;font-family:var(--disp);font-size:12.5px}
@@ -615,8 +625,8 @@ footer a:hover{color:var(--volt)}
   <div class="kicker"><b>06</b> / The Desk</div>
   <h2>The desk is <em>open</em>.</h2>
   <p class="dek">Six agents on the floor, one market, one rule: every call gets logged. This is
-    the desk as it stands right now, refreshed every cycle. Paper execution for now; real capital
-    is the next phase.</p>
+    the desk as it stands right now, refreshed every cycle. <span data-exec-line>Paper execution for
+    now; real capital is the next phase.</span></p>
 
   <div id="floor" class="floor">
     <canvas width="384" height="216" aria-label="The GENIUS trading floor, six agents at their desks"></canvas>

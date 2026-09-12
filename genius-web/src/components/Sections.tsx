@@ -360,6 +360,14 @@ function liveStats() {
   };
 }
 
+function execLine() {
+  const D = (window as unknown as { GENIUS_DATA?: { meta?: { execution?: string } } }).GENIUS_DATA;
+  const ex = D?.meta?.execution;
+  if (ex === "live") return "Live execution on Drift Protocol. Every fill is on-chain.";
+  if (ex === "shadow") return "Shadow execution for now: real market, real decisions, paper fills. Real capital is next.";
+  return "Paper execution for now; real capital is the next phase.";
+}
+
 export function Desk() {
   const { stats, meta } = liveStats();
   const floor = useRef<HTMLDivElement>(null);
@@ -376,8 +384,8 @@ export function Desk() {
       </H2>
       <p className="dek">
         Six agents on the floor, one market, one rule: every call gets logged. This is the desk
-        as it stands right now, refreshed every cycle. Paper execution for now; real capital is
-        the next phase.
+        as it stands right now, refreshed every cycle.{" "}
+        {execLine()}
       </p>
 
       <div id="floor" className="floor" ref={floor}>
