@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    background: theme("colors.bg");
+  }
+  body {
+    @apply bg-bg text-ink-2 font-display antialiased overflow-x-hidden;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+}
+
+@layer components {
+  /* The device-module card: dark gradient panel with corner brackets.
+     Used for every card on the page. */
+  .mod {
+    @apply relative rounded-lg border border-line p-[22px] transition-all duration-200;
+    background: linear-gradient(160deg, #141a1c, #0f1315 55%, #0a0d0f);
+  }
+  .mod::before,
+  .mod::after {
+    content: "";
+    @apply absolute h-[11px] w-[11px] border border-line-2 transition-colors duration-200;
+  }
+  .mod::before {
+    @apply left-[9px] top-[9px] border-b-0 border-r-0;
+  }
+  .mod::after {
+    @apply bottom-[9px] right-[9px] border-l-0 border-t-0;
+  }
+  .mod:hover {
+    @apply -translate-y-0.5 border-line-2 shadow-mod;
+  }
+  .mod:hover::before,
+  .mod:hover::after {
+    @apply border-volt;
+  }
+
+  /* Alert variant — used for the VETO card and the risk gate step */
+  .mod-alert {
+    border-color: rgba(255, 90, 90, 0.32);
+    background: linear-gradient(160deg, #181113, #0f1315 60%);
+  }
+  .mod-alert::before,
+  .mod-alert::after {
+    border-color: rgba(255, 90, 90, 0.35);
+  }
+  .mod-alert:hover::before,
+  .mod-alert:hover::after {
+    @apply border-danger;
+  }
+
+  .btn {
+    @apply inline-flex items-center gap-2 rounded border border-line-2 px-[26px] py-[14px]
+           font-mono text-[11.5px] font-semibold uppercase tracking-[0.14em]
+           text-ink no-underline transition-all duration-200;
+  }
+  .btn-solid {
+    @apply border-volt bg-volt text-[#07130a];
+  }
+  .btn-solid:hover {
+    @apply -translate-y-px shadow-volt;
+  }
+  .btn-ghost:hover {
+    @apply border-volt text-volt shadow-volt-soft;
+  }
+
+  .dek {
+    @apply mt-5 max-w-[62ch] text-ink-2;
+    font-size: clamp(16px, 2vw, 19px);
+    line-height: 1.62;
+    text-wrap: pretty;
+  }
+  .dek strong {
+    @apply font-semibold text-ink;
+  }
+}

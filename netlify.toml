@@ -1,0 +1,12 @@
+# Netlify: deploy the zero-build static site from this repo.
+# Works with a PRIVATE GitHub repo — Netlify reads it via its GitHub app;
+# only the published pages are public.
+[build]
+  publish = "site"
+  command = ""
+
+# To deploy the Lovable/React version instead, replace the block above with:
+# [build]
+#   base    = "genius-web"
+#   publish = "dist"
+#   command = "npm run build"

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GENIUS — Lab Console</title>
+<meta name="description" content="Live console for the GENIUS research lab: agent reports, decision journal, and after-cost results from the paper-traded experiment.">
+<meta name="theme-color" content="#060809">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060809;--panel:#0f1315;--panel-2:#141a1c;--line:#1e2528;--line-2:#2b3438;
+  --volt:#a6e22e;--volt-glow:rgba(166,226,46,.32);--cyan:#35d6e8;
+  --price:#00a2b8;--equity:#71a10f;         /* validated chart pair */
+  --amber:#f0a53c;--red:#ff5a5a;
+  --ink:#f0f3f2;--ink-2:#9aa5a7;--ink-3:#616c6f;
+  --disp:'Archivo',ui-sans-serif,system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink-2);font:400 15px/1.6 var(--disp);
+     -webkit-font-smoothing:antialiased}
+.wrap{max-width:1220px;margin:0 auto;padding:0 clamp(18px,4vw,44px)}
+a{color:inherit}
+
+.nav{border-bottom:1px solid var(--line);background:rgba(6,8,9,.9);
+     backdrop-filter:blur(12px);position:sticky;top:0;z-index:40}
+.nav .wrap{display:flex;align-items:center;gap:14px;height:60px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo svg{width:24px;height:27px;filter:drop-shadow(0 0 9px var(--volt-glow))}
+.logo span{font:800 18px/1 var(--disp);letter-spacing:.15em;color:var(--ink)}
+.logo em{font:500 10px var(--mono);letter-spacing:.16em;text-transform:uppercase;
+         color:var(--ink-3);font-style:normal;border-left:1px solid var(--line-2);
+         padding-left:10px;margin-left:2px}
+.nav .back{margin-left:auto;font:500 11px var(--mono);letter-spacing:.13em;
+           text-transform:uppercase;color:var(--ink-3);text-decoration:none}
+.nav .back:hover{color:var(--volt)}
+
+.banner{background:#000;border-bottom:1px solid var(--line);padding:9px 0;
+        font:500 10.5px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}
+.banner .wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.banner i{font-style:normal}
+
+header.head{padding:clamp(30px,5vw,52px) 0 8px}
+h1{font:800 clamp(28px,5vw,46px)/1 var(--disp);letter-spacing:-.035em;color:var(--ink)}
+h1 em{font-style:normal;color:var(--volt)}
+.meta{margin-top:12px;font:400 12.5px/1.7 var(--mono);color:var(--ink-3)}
+
+h2{font:500 11px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3);
+   margin:clamp(34px,5vw,52px) 0 16px;display:flex;align-items:center;gap:12px}
+h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line-2),transparent)}
+h2 b{color:var(--volt);font-weight:500}
+
+.mod{position:relative;border:1px solid var(--line);border-radius:8px;
+     background:linear-gradient(160deg,var(--panel-2),var(--panel) 55%,#0a0d0f);padding:18px}
+.mod::before,.mod::after{content:"";position:absolute;width:10px;height:10px;
+  border:1px solid var(--line-2)}
+.mod::before{top:8px;left:8px;border-right:0;border-bottom:0}
+.mod::after{bottom:8px;right:8px;border-left:0;border-top:0}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(146px,1fr));gap:10px}
+.tile .k{font:500 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.tile .v{font:800 clamp(21px,2.8vw,28px)/1 var(--disp);letter-spacing:-.03em;color:var(--ink);margin-top:9px}
+.tile .v.up{color:var(--volt)} .tile .v.down{color:var(--red)}
+.tile .n{font-size:12px;color:var(--ink-3);margin-top:6px;line-height:1.45}
+
+.charts{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:940px){.charts{grid-template-columns:1fr 1fr}}
+.chart h3{font:500 11px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--ink-2);
+          margin-bottom:14px;display:flex;align-items:center;gap:9px}
+.chart h3 i{width:9px;height:9px;border-radius:2px;display:block;flex:none}
+svg.plot{display:block;width:100%;height:auto;overflow:visible}
+.tip{position:absolute;pointer-events:none;background:#000;border:1px solid var(--line-2);
+     border-radius:4px;padding:7px 10px;font:400 12px var(--mono);color:var(--ink);
+     display:none;z-index:9;white-space:nowrap}
+details{margin-top:14px}
+summary{cursor:pointer;font:500 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;
+        color:var(--ink-3);list-style:none}
+summary:hover{color:var(--volt)}
+summary::before{content:"▸ ";color:var(--volt)}
+details[open] summary::before{content:"▾ "}
+.dscroll{max-height:220px;overflow:auto;margin-top:12px;border:1px solid var(--line);border-radius:5px}
+
+.agents{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:700px){.agents{grid-template-columns:1fr 1fr}}
+@media(min-width:1080px){.agents{grid-template-columns:repeat(3,1fr)}}
+.ag .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.ag .nm{font:800 15px/1 var(--disp);color:var(--ink)}
+.ag .rl{font:500 9.5px var(--mono);letter-spacing:.13em;text-transform:uppercase;
+        color:var(--volt);margin-top:6px}
+.badge{font:600 9px var(--mono);letter-spacing:.13em;padding:3px 8px;border-radius:3px;
+       border:1px solid var(--line-2);color:var(--ink-3);white-space:nowrap}
+.badge.long{color:var(--volt);border-color:rgba(166,226,46,.45);background:rgba(166,226,46,.09)}
+.badge.short{color:var(--red);border-color:rgba(255,90,90,.45);background:rgba(255,90,90,.09)}
+.ag ul{margin:14px 0 0 16px;font-size:13px;line-height:1.6;color:var(--ink-2)}
+.ag li{margin-bottom:6px}.ag li::marker{color:var(--ink-3)}
+.conf{margin-top:14px}
+.conf .lbl{font:400 9.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;
+           color:var(--ink-3);display:flex;justify-content:space-between;margin-bottom:6px}
+.conf .track{height:3px;background:var(--line);border-radius:2px;overflow:hidden}
+.conf .track i{display:block;height:100%;background:var(--volt);box-shadow:0 0 8px var(--volt-glow)}
+.simtag{font:600 9px var(--mono);letter-spacing:.14em;color:var(--amber);
+        border:1px solid rgba(240,165,60,.4);background:rgba(240,165,60,.09);
+        padding:2px 7px;border-radius:3px;display:inline-block;margin-top:10px}
+
+.tbl{overflow:auto;max-height:420px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font:400 12.5px var(--mono);min-width:660px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font:600 9.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);
+   background:#0b0e10;position:sticky;top:0;z-index:2}
+td{color:var(--ink-2)}
+td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
+tbody tr:hover td{background:rgba(166,226,46,.03)}
+.up{color:var(--volt)}.down{color:var(--red)}
+.d-ENTERED{color:var(--cyan)}.d-VETOED{color:var(--red)}
+.d-NO_TRADE{color:var(--ink-3)}.d-HOLDING{color:var(--volt)}
+
+#err{display:none;margin:40px 0;padding:28px;border:1px solid rgba(255,90,90,.35);
+     border-radius:8px;background:rgba(255,90,90,.05);color:var(--ink)}
+#err code{color:var(--volt);font:500 13px var(--mono);background:#000;padding:3px 8px;
+          border-radius:3px;display:inline-block;margin-top:8px}
+footer{margin-top:64px;border-top:1px solid var(--line);background:#000;padding:34px 0 48px;
+       font:400 12px/1.8 var(--mono);color:var(--ink-3)}
+footer strong{color:var(--ink-2);font-weight:500}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="gmark" viewBox="0 0 40 44">
+    <path d="M20 0 40 11v22L20 44 0 33V11Z" fill="#a6e22e"/>
+    <path d="M28.5 14.5H18a4.5 4.5 0 0 0-4.5 4.5v6a4.5 4.5 0 0 0 4.5 4.5h8.5V22h-6.8v3.6h3.1v1.4H18a1.9 1.9 0 0 1-1.9-1.9v-6A1.9 1.9 0 0 1 18 17.2h10.5Z" fill="#060809"/>
+  </symbol>
+</defs></svg>
+
+<div class="nav"><div class="wrap">
+  <a class="logo" href="../"><svg><use href="#gmark"/></svg><span>GENIUS</span><em>Lab Console</em></a>
+  <a class="back" href="../">← Back to site</a>
+</div></div>
+
+<div class="banner"><div class="wrap">
+  <i>◆</i> Paper / simulated — no real capital, no live execution, not investment advice
+</div></div>
+
+<div class="wrap">
+  <header class="head">
+    <h1>Experiment <em>001</em></h1>
+    <div class="meta" id="meta">Loading run data…</div>
+  </header>
+
+  <div id="err">
+    <strong style="font:700 17px var(--disp)">No run data found.</strong><br>
+    This console reads <code>data.js</code>, produced by the lab. Generate it, then reload:
+    <br><code>python3 lab/run_demo.py</code><br><br>
+    <span style="font:400 12.5px var(--mono);color:var(--ink-3)">
+      Opening this file directly from disk can also block the script — serve it instead with
+      <code style="margin-top:0">python3 serve.py</code></span>
+  </div>
+
+  <main id="app" style="display:none">
+    <h2><b>01</b> Run metrics — after simulated costs</h2>
+    <div class="tiles" id="tiles"></div>
+
+    <h2><b>02</b> Market &amp; equity</h2>
+    <div class="charts">
+      <div class="mod chart" style="position:relative">
+        <h3><i style="background:var(--price)"></i>Instrument close</h3>
+        <div id="priceChart"></div><div class="tip" id="priceTip"></div>
+      </div>
+      <div class="mod chart" style="position:relative">
+        <h3><i style="background:var(--equity)"></i>Lab equity — paper, after costs</h3>
+        <div id="equityChart"></div><div class="tip" id="equityTip"></div>
+        <details><summary>View as data</summary><div class="dscroll" id="equityTable"></div></details>
+      </div>
+    </div>
+
+    <h2><b>03</b> Six minds — latest cycle reports</h2>
+    <div class="agents" id="agents"></div>
+
+    <h2><b>04</b> Decision journal — every cycle, including “no trade”</h2>
+    <div class="tbl"><table id="journal"><thead><tr>
+      <th>Bar</th><th>Price</th><th>Decision</th><th>Detail</th>
+      <th>Tech</th><th>Flow</th><th>Fund</th></tr></thead><tbody></tbody></table></div>
+
+    <h2><b>05</b> Closed trades — P&amp;L after fees + slippage</h2>
+    <div class="tbl"><table id="trades"><thead><tr>
+      <th>Side</th><th>Qty</th><th>Entry</th><th>Exit</th>
+      <th>P&amp;L</th><th>Costs</th><th>Exit reason</th></tr></thead><tbody></tbody></table></div>
+  </main>
+</div>
+
+<footer><div class="wrap">
+  <strong>GENIUS Lab console — research demonstration only.</strong> All trading shown is paper or
+  simulated; no capital is deployed and nothing here is investment advice. Simulated results carry
+  well-known biases and do not predict real outcomes. Data source and mode are printed at the top
+  of this page. Agreement between agents is logged as context, never treated as proof of
+  correctness.
+</div></footer>
+
+<script src="data.js"></script>
+<script>
+(function(){
+  var D=window.GENIUS_DATA;
+  if(!D){document.getElementById('err').style.display='block';
+         document.getElementById('meta').textContent='';return;}
+  document.getElementById('app').style.display='block';
+  var m=D.metrics,meta=D.meta,eq=D.equity_curve;
+  document.getElementById('meta').innerHTML=
+    meta.instrument+' &nbsp;·&nbsp; source: '+meta.source+' &nbsp;·&nbsp; '+meta.sessions+
+    ' sessions × '+meta.bars_per_session+' bars<br>'+meta.generated_note;
+
+  function money(v){return (v<0?'−$':'$')+Math.abs(v).toLocaleString('en-US',{maximumFractionDigits:0});}
+  var last=eq[eq.length-1].equity, first=eq[0].equity;
+
+  var tiles=[
+    ['Equity',money(last),null,'start '+money(first)],
+    ['Net P&L',money(m.total_pnl),m.total_pnl,'after '+money(m.total_costs)+' costs'],
+    ['Win rate',Math.round(m.win_rate*100)+'%',null,m.wins+'W / '+m.losses+'L'],
+    ['Expectancy',money(m.expectancy),m.expectancy,'per trade, after costs'],
+    ['Max drawdown',(m.max_drawdown_pct<0?'−':'')+Math.abs(m.max_drawdown_pct).toFixed(1)+'%',
+      m.max_drawdown_pct,'on equity curve'],
+    ['Risk vetoes',m.vetoes,null,'final — code-enforced'],
+    ['No-trade cycles',m.no_trade,null,'of '+m.cycles+' cycles']
+  ];
+  document.getElementById('tiles').innerHTML=tiles.map(function(t){
+    var cls=t[2]==null?'':(t[2]>=0?'up':'down');
+    return '<div class="mod tile"><div class="k">'+t[0]+'</div><div class="v '+cls+'">'+
+           t[1]+'</div><div class="n">'+t[3]+'</div></div>';}).join('');
+
+  function plot(mountId,tipId,pts,color,fmt){
+    var W=560,H=250,P={t:12,r:14,b:26,l:62};
+    var ys=pts.map(function(p){return p.v;});
+    var y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys);
+    var pad=(y1-y0)*0.08||1; y0-=pad; y1+=pad;
+    var n=pts.length;
+    var X=function(i){return P.l+(W-P.l-P.r)*(n>1?i/(n-1):0);};
+    var Y=function(v){return P.t+(H-P.t-P.b)*(1-(v-y0)/(y1-y0));};
+    var grid='',labels='';
+    for(var g=0;g<4;g++){
+      var v=y0+(y1-y0)*g/3,y=Y(v);
+      grid+='<line x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y+'" y2="'+y+
+            '" stroke="#1e2528" stroke-width="1"/>';
+      labels+='<text x="'+(P.l-10)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" '+
+              'font-family="IBM Plex Mono, monospace" fill="#616c6f">'+fmt(v)+'</text>';}
+    var d=pts.map(function(p,i){return (i?'L':'M')+X(i).toFixed(1)+' '+Y(p.v).toFixed(1);}).join(' ');
+    var area=d+' L'+X(n-1).toFixed(1)+' '+(H-P.b)+' L'+P.l+' '+(H-P.b)+' Z';
+    var uid=mountId;
+    document.getElementById(mountId).innerHTML=
+      '<svg class="plot" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="line chart">'+
+      '<defs><linearGradient id="g-'+uid+'" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0%" stop-color="'+color+'" stop-opacity=".22"/>'+
+      '<stop offset="100%" stop-color="'+color+'" stop-opacity="0"/></linearGradient></defs>'+
+      grid+labels+
+      '<path d="'+area+'" fill="url(#g-'+uid+')"/>'+
+      '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linejoin="round"/>'+
+      '<line id="'+uid+'-cx" y1="'+P.t+'" y2="'+(H-P.b)+'" stroke="#616c6f" stroke-width="1" '+
+      'stroke-dasharray="3 3" style="display:none"/>'+
+      '<circle id="'+uid+'-dot" r="4.5" fill="'+color+'" stroke="#060809" stroke-width="2" style="display:none"/>'+
+      '<rect id="'+uid+'-hit" x="'+P.l+'" y="'+P.t+'" width="'+(W-P.l-P.r)+'" height="'+(H-P.t-P.b)+'" fill="transparent"/></svg>';
+
+    var host=document.getElementById(mountId),tip=document.getElementById(tipId),
+        svg=host.querySelector('svg'),cx=document.getElementById(uid+'-cx'),
+        dot=document.getElementById(uid+'-dot'),hit=document.getElementById(uid+'-hit');
+    hit.addEventListener('mousemove',function(ev){
+      var r=svg.getBoundingClientRect(),sx=(ev.clientX-r.left)*W/r.width;
+      var i=Math.round((sx-P.l)/(W-P.l-P.r)*(n-1));
+      i=Math.max(0,Math.min(n-1,i));
+      var p=pts[i],x=X(i),y=Y(p.v);
+      cx.setAttribute('x1',x);cx.setAttribute('x2',x);cx.style.display='';
+      dot.setAttribute('cx',x);dot.setAttribute('cy',y);dot.style.display='';
+      tip.style.display='block';
+      tip.innerHTML='<b style="color:'+color+'">'+fmt(p.v)+'</b><br><span style="color:#616c6f">'+p.label+'</span>';
+      var box=host.parentElement.getBoundingClientRect();
+      var tx=x*r.width/W+18, ty=y*r.height/H-8;
+      if(tx+tip.offsetWidth>box.width-14) tx-=tip.offsetWidth+34;
+      tip.style.left=tx+'px';tip.style.top=ty+'px';});
+    hit.addEventListener('mouseleave',function(){
+      tip.style.display='none';cx.style.display='none';dot.style.display='none';});
+  }
+  var when=function(ts){return new Date(ts*1000).toISOString().slice(5,16).replace('T',' ');};
+  var usd=function(v){return '$'+Math.round(v).toLocaleString('en-US');};
+  plot('priceChart','priceTip',eq.map(function(p){return {v:p.price,label:when(p.ts)};}),'#00a2b8',usd);
+  plot('equityChart','equityTip',eq.map(function(p){return {v:p.equity,label:when(p.ts)};}),'#71a10f',usd);
+
+  var step=Math.max(1,Math.floor(eq.length/40));
+  document.getElementById('equityTable').innerHTML=
+    '<table><thead><tr><th>Time</th><th>Equity</th><th>Price</th></tr></thead><tbody>'+
+    eq.filter(function(_,i){return i%step===0;}).map(function(p){
+      return '<tr><td>'+when(p.ts)+'</td><td class="num">'+money(p.equity)+
+             '</td><td class="num">'+money(p.price)+'</td></tr>';}).join('')+'</tbody></table>';
+
+  document.getElementById('agents').innerHTML=D.reports.map(function(r){
+    return '<article class="mod ag"><div class="top"><div><div class="nm">'+r.agent+
+      '</div><div class="rl">'+r.role+'</div></div><span class="badge '+r.stance+'">'+
+      r.stance.toUpperCase()+'</span></div>'+
+      (r.status!=='IMPLEMENTED'?'<span class="simtag">'+r.status+' DATA</span>':'')+
+      '<ul>'+r.findings.map(function(f){return '<li>'+f+'</li>';}).join('')+'</ul>'+
+      '<div class="conf"><div class="lbl"><span>Confidence</span><span>'+
+      Math.round(r.confidence*100)+'%</span></div><div class="track"><i style="width:'+
+      (r.confidence*100)+'%"></i></div></div></article>';}).join('');
+
+  document.querySelector('#journal tbody').innerHTML=
+    D.journal_tail.slice().reverse().map(function(e){
+      return '<tr><td class="num">'+e.bar+'</td><td class="num">'+money(e.price)+
+        '</td><td class="d-'+e.decision+'">'+e.decision.replace('_',' ')+
+        '</td><td style="white-space:normal;max-width:400px">'+(e.detail||'')+
+        '</td><td>'+e.stances.technical+'</td><td>'+e.stances.orderflow+
+        '</td><td>'+e.stances.fundamental+'</td></tr>';}).join('');
+
+  document.querySelector('#trades tbody').innerHTML=
+    D.closed_trades.slice().reverse().map(function(t){
+      return '<tr><td>'+t.side+'</td><td class="num">'+t.qty+'</td><td class="num">'+
+        money(t.entry)+'</td><td class="num">'+money(t.exit)+'</td><td class="num '+
+        (t.pnl>=0?'up':'down')+'">'+money(t.pnl)+'</td><td class="num">'+money(t.costs)+
+        '</td><td>'+t.reason+'</td></tr>';}).join('');
+})();
+</script>
+</body>
+</html>

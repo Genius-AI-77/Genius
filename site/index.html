@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GENIUS — Everyone is a Scientist.</title>
+<meta name="description" content="GENIUS is a market research lab built on AI agents and physical infrastructure. Hypotheses, data, tests, results — and the mistakes in between, in public.">
+<meta name="theme-color" content="#060809">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta property="og:title" content="GENIUS — Everyone is a Scientist.">
+<meta property="og:description" content="A market research lab of AI agents. Six roles, hard risk limits, and every decision published — including the losses.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060809;
+  --bg-2:#0a0d0f;
+  --panel:#0f1315;
+  --panel-2:#141a1c;
+  --line:#1e2528;
+  --line-2:#2b3438;
+  --volt:#a6e22e;
+  --volt-dim:#6f9a1c;
+  --volt-glow:rgba(166,226,46,.34);
+  --cyan:#35d6e8;
+  --amber:#f0a53c;
+  --red:#ff5a5a;
+  --ink:#f0f3f2;
+  --ink-2:#9aa5a7;
+  --ink-3:#616c6f;
+  --disp:'Archivo',ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --gut:clamp(20px,5vw,72px);
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{
+  background:var(--bg);color:var(--ink-2);
+  font:400 16px/1.65 var(--disp);
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+img{max-width:100%}
+a{color:inherit}
+.wrap{max-width:1200px;margin:0 auto;padding:0 var(--gut);position:relative;z-index:2}
+
+/* floor grid + vignette, the studio look */
+.stage{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.stage .grid{position:absolute;inset:-10% -10% 0;
+  background-image:linear-gradient(rgba(166,226,46,.05) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(166,226,46,.05) 1px,transparent 1px);
+  background-size:72px 72px;
+  mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000 0%,transparent 72%);
+  -webkit-mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000 0%,transparent 72%);}
+.stage .bar{position:absolute;top:6%;width:3px;height:56%;border-radius:3px;
+  background:linear-gradient(180deg,transparent,var(--cyan) 18%,var(--cyan) 82%,transparent);
+  opacity:.5;filter:blur(1.5px);box-shadow:0 0 34px 8px rgba(53,214,232,.28)}
+.stage .bar.l{left:5%} .stage .bar.r{right:5%}
+@media(max-width:900px){.stage .bar{display:none}}
+.stage .haze{position:absolute;left:50%;top:-14%;width:min(1000px,120vw);height:640px;
+  transform:translateX(-50%);border-radius:50%;
+  background:radial-gradient(closest-side,rgba(166,226,46,.13),transparent 70%);filter:blur(30px)}
+
+/* ---------- nav ---------- */
+.nav{position:sticky;top:0;z-index:60;background:rgba(6,8,9,.82);
+     backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:14px;height:62px}
+.logo{display:flex;align-items:center;gap:11px;text-decoration:none}
+.logo svg{width:26px;height:29px;display:block;filter:drop-shadow(0 0 9px var(--volt-glow))}
+.logo span{font:800 20px/1 var(--disp);letter-spacing:.16em;color:var(--ink)}
+.nav nav{margin-left:auto;display:flex;gap:26px;
+         font:500 11px var(--mono);letter-spacing:.13em;text-transform:uppercase}
+.nav nav a{text-decoration:none;color:var(--ink-3);transition:color .16s;position:relative}
+.nav nav a:hover{color:var(--volt)}
+.nav nav a::after{content:"";position:absolute;left:0;right:100%;bottom:-6px;height:1px;
+                  background:var(--volt);transition:right .22s}
+.nav nav a:hover::after{right:0}
+@media(max-width:880px){.nav nav a:nth-child(n+4){display:none}}
+@media(max-width:520px){.nav nav a:nth-child(n+3){display:none}}
+
+/* ---------- wallet ---------- */
+.wbtn{margin-left:18px;flex:none;padding:9px 14px;border-radius:4px;cursor:pointer;
+      border:1px solid var(--line-2);background:transparent;color:var(--ink);
+      font:600 10.5px var(--mono);letter-spacing:.13em;text-transform:uppercase;transition:.16s}
+.wbtn:hover{border-color:var(--volt);color:var(--volt);box-shadow:0 0 22px -6px var(--volt-glow)}
+.wbtn.connected{border-color:var(--volt);color:var(--volt);text-transform:none;letter-spacing:.04em}
+@media(max-width:520px){.wbtn{margin-left:auto}}
+.wpanel{position:absolute;right:var(--gut);top:70px;width:min(400px,calc(100vw - 2*var(--gut)));
+        z-index:70;border:1px solid var(--line-2);border-radius:8px;padding:18px;
+        background:linear-gradient(160deg,var(--panel-2),var(--panel) 55%,#0a0d0f);
+        box-shadow:0 30px 60px -20px rgba(0,0,0,.9),0 0 0 1px rgba(166,226,46,.08);
+        font:400 13px/1.6 var(--disp);color:var(--ink-2)}
+.wp-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;
+         border-bottom:1px solid var(--line);font:600 11px var(--mono);letter-spacing:.14em;
+         text-transform:uppercase;color:var(--ink)}
+.wp-net{margin-left:auto;font-weight:500;color:var(--ink-3);letter-spacing:.08em;text-transform:none}
+.wp-x{background:none;border:0;color:var(--ink-3);font-size:20px;line-height:1;cursor:pointer;padding:0 0 0 6px}
+.wp-x:hover{color:var(--volt)}
+.wp-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);
+        font:400 12.5px var(--mono)}
+.wp-row span{color:var(--ink-3)} .wp-row b{font-weight:500;color:var(--ink)}
+.wp-row code{color:var(--volt);cursor:copy}
+.wp-dim{color:var(--ink-3)!important}.wp-ok{color:var(--volt)}.wp-bad{color:var(--red)}
+.wp-actions{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}
+.wp-actions .btn{padding:10px 16px;font-size:10.5px}
+.wp-list{display:grid;gap:6px;margin-bottom:6px}
+.wp-wallet{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border-radius:5px;
+           border:1px solid var(--line-2);background:#0b0f11;color:var(--ink);cursor:pointer;
+           font:600 12.5px var(--disp);transition:.15s;text-align:left}
+.wp-wallet:hover{border-color:var(--volt);box-shadow:0 0 18px -6px var(--volt-glow)}
+.wp-wallet img{width:20px;height:20px;border-radius:4px}
+.wp-none{font:400 12.5px/1.7 var(--mono);color:var(--ink-2)}
+.wp-none a{color:var(--volt)}
+.wp-err{margin-top:10px;font:400 12px var(--mono);color:var(--red)}
+.wp-rules{margin:14px 0 0;padding:12px 0 0 16px;border-top:1px dashed var(--line);
+          font:400 11.5px/1.6 var(--mono);color:var(--ink-3)}
+.wp-rules li{margin-bottom:6px}
+
+/* ---------- ticker ---------- */
+.ticker{background:#000;border-bottom:1px solid var(--line);overflow:hidden;white-space:nowrap;
+        font:500 10.5px var(--mono);letter-spacing:.16em;text-transform:uppercase}
+.ticker .run{display:inline-block;padding:8px 0;animation:slide 40s linear infinite}
+.ticker s{text-decoration:none;padding:0 22px;color:var(--ink-3)}
+.ticker i{color:var(--volt);font-style:normal;margin-right:9px}
+@keyframes slide{to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.ticker .run{animation:none}}
+
+/* ---------- section chrome ---------- */
+section{padding:clamp(72px,10vw,132px) 0;position:relative;z-index:2}
+section+section{border-top:1px solid var(--line)}
+.kicker{display:flex;align-items:center;gap:14px;margin-bottom:clamp(22px,3vw,34px);
+        font:500 11px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
+.kicker b{color:var(--volt);font-weight:500}
+.kicker::after{content:"";flex:1;height:1px;
+               background:linear-gradient(90deg,var(--line-2),transparent)}
+h2{font:800 clamp(34px,6.4vw,72px)/.95 var(--disp);letter-spacing:-.038em;color:var(--ink);
+   max-width:19ch;text-wrap:balance}
+h2 em{font-style:normal;color:var(--volt)}
+.dek{margin-top:20px;font-size:clamp(16px,2vw,19px);color:var(--ink-2);max-width:62ch;line-height:1.62}
+.dek strong{color:var(--ink);font-weight:600}
+
+/* ---------- hero ---------- */
+.hero{padding:clamp(64px,11vw,140px) 0 clamp(56px,8vw,100px);text-align:center}
+.hero .kicker{justify-content:center}
+.hero .kicker::after{display:none}
+.hero .kicker::before{content:"";width:52px;height:1px;background:var(--line-2)}
+.hero-mark{margin:0 auto clamp(26px,4vw,42px);width:clamp(78px,12vw,116px)}
+.hero-mark svg{width:100%;height:auto;filter:drop-shadow(0 0 26px var(--volt-glow))
+               drop-shadow(0 0 70px rgba(166,226,46,.22));animation:float 7s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(-5px)}50%{transform:translateY(5px)}}
+@media(prefers-reduced-motion:reduce){.hero-mark svg{animation:none}}
+h1{font:800 clamp(46px,10.4vw,116px)/.9 var(--disp);letter-spacing:-.045em;color:#fff;
+   text-wrap:balance}
+h1 .dot{color:var(--volt)}
+.hero .sub{margin-top:clamp(18px,2.6vw,28px);font:400 clamp(13px,2.1vw,19px) var(--mono);
+           letter-spacing:.09em;color:var(--ink-2)}
+.hero .lede{margin:clamp(30px,4vw,44px) auto 0;max-width:60ch;font-size:clamp(16px,1.9vw,18.5px);
+            color:var(--ink-2);line-height:1.68}
+.hero .lede strong{color:var(--ink);font-weight:600}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:clamp(32px,4vw,44px)}
+.btn{display:inline-flex;align-items:center;gap:9px;padding:14px 26px;text-decoration:none;
+     font:600 11.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;
+     border-radius:4px;border:1px solid var(--line-2);color:var(--ink);transition:.18s}
+.btn.solid{background:var(--volt);color:#07130a;border-color:var(--volt);
+           box-shadow:0 0 0 0 var(--volt-glow)}
+.btn.solid:hover{box-shadow:0 0 30px 2px var(--volt-glow);transform:translateY(-1px)}
+.btn.ghost:hover{border-color:var(--volt);color:var(--volt);
+                 box-shadow:0 0 22px -6px var(--volt-glow)}
+.notice{margin:clamp(38px,5vw,56px) auto 0;max-width:74ch;text-align:left;
+        border:1px solid var(--line);border-left:2px solid var(--amber);border-radius:4px;
+        background:linear-gradient(180deg,rgba(240,165,60,.05),transparent);
+        padding:18px 22px;font:400 13.5px/1.72 var(--mono);color:var(--ink-2)}
+.notice b{color:var(--amber);letter-spacing:.1em;text-transform:uppercase;font-size:11px;
+          display:block;margin-bottom:7px}
+
+/* ---------- module card (the device look) ---------- */
+.mod{position:relative;border:1px solid var(--line);border-radius:8px;
+     background:linear-gradient(160deg,var(--panel-2),var(--panel) 55%,#0a0d0f);
+     padding:22px;transition:.2s}
+.mod::before,.mod::after{content:"";position:absolute;width:11px;height:11px;
+  border:1px solid var(--line-2);transition:.2s}
+.mod::before{top:9px;left:9px;border-right:0;border-bottom:0}
+.mod::after{bottom:9px;right:9px;border-left:0;border-top:0}
+.mod:hover{border-color:var(--line-2);transform:translateY(-2px);
+           box-shadow:0 18px 44px -22px rgba(0,0,0,.9),0 0 0 1px rgba(166,226,46,.09),
+                      0 22px 40px -30px var(--volt-glow)}
+.mod:hover::before,.mod:hover::after{border-color:var(--volt)}
+
+/* ---------- machine ---------- */
+.machine{display:grid;grid-template-columns:1fr;gap:30px;align-items:start}
+@media(min-width:980px){.machine{grid-template-columns:1.02fr .98fr;gap:46px}}
+.rack{padding:26px 22px 22px}
+.rack-cap{font:500 10px var(--mono);letter-spacing:.16em;text-transform:uppercase;
+          color:var(--ink-3);margin-bottom:18px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.rack-cap b{color:var(--volt);font-weight:500}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.col h4{font:600 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;text-align:center;
+        padding-bottom:9px;margin-bottom:11px;border-bottom:1px solid var(--line);color:var(--ink-2)}
+.col:nth-child(1) h4{color:var(--volt)} .col:nth-child(2) h4{color:var(--cyan)}
+.unit{border:1px solid var(--line);border-radius:3px;background:#0b0f11;
+      padding:6px 5px;margin-bottom:5px;display:flex;gap:4px;justify-content:center;transition:.15s}
+.unit i{width:5px;height:5px;border-radius:50%;background:#394346;display:block;transition:.15s}
+.unit:hover{border-color:var(--volt);background:#101613;box-shadow:0 0 18px -6px var(--volt-glow)}
+.unit:hover i{background:var(--volt);box-shadow:0 0 6px var(--volt-glow)}
+.col:nth-child(2) .unit:hover{border-color:var(--cyan);box-shadow:0 0 18px -6px rgba(53,214,232,.4)}
+.col:nth-child(2) .unit:hover i{background:var(--cyan);box-shadow:0 0 6px rgba(53,214,232,.5)}
+.rack-key{margin-top:18px;padding-top:14px;border-top:1px dashed var(--line);
+          font:400 11.5px/1.75 var(--mono);color:var(--ink-3)}
+.rack-key b{color:var(--ink-2);font-weight:500}
+.specs{list-style:none;padding:0;margin-bottom:26px}
+.specs li{display:flex;justify-content:space-between;gap:14px;align-items:baseline;
+          padding:12px 0;border-bottom:1px solid var(--line);font:400 13.5px var(--mono)}
+.specs li span{color:var(--ink-3)} .specs li b{color:var(--ink);font-weight:500;text-align:right}
+.specs li.tot b{color:var(--volt);font-size:16px}
+
+/* ---------- agents ---------- */
+.agents{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:720px){.agents{grid-template-columns:1fr 1fr}}
+.ag{padding:24px 22px}
+.ag .top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.ag .ico{width:34px;height:34px;flex:none;border-radius:5px;border:1px solid var(--line-2);
+         display:grid;place-items:center;background:#0b0f11}
+.ag .ico svg{width:17px;height:17px}
+.ag .nm{font:800 17px/1 var(--disp);letter-spacing:-.01em;color:var(--ink)}
+.ag .rl{font:500 10px var(--mono);letter-spacing:.13em;text-transform:uppercase;
+        color:var(--volt);margin-top:6px}
+.ag p{font-size:15px;line-height:1.62;color:var(--ink-2)}
+.ag dl{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);
+       font:400 12px/1.75 var(--mono);color:var(--ink-3)}
+.ag dl b{color:var(--ink-2);font-weight:500}
+.ag.veto{grid-column:1/-1;border-color:rgba(255,90,90,.3);
+         background:linear-gradient(160deg,#181113,var(--panel) 60%)}
+.ag.veto .rl{color:var(--red)}
+.ag.veto .ico{border-color:rgba(255,90,90,.4)}
+.ag.veto::before,.ag.veto::after{border-color:rgba(255,90,90,.35)}
+.ag.veto:hover::before,.ag.veto:hover::after{border-color:var(--red)}
+@media(min-width:720px){.ag.veto{display:grid;grid-template-columns:1fr 1fr;gap:0 32px}
+  .ag.veto .top{grid-column:1/-1} .ag.veto dl{margin-top:0;border-top:0;padding-top:0}}
+
+/* ---------- flow ---------- */
+.flow{display:grid;gap:10px;grid-template-columns:1fr;counter-reset:s}
+@media(min-width:820px){.flow{grid-template-columns:repeat(5,1fr);gap:8px}}
+.step{padding:20px 18px}
+.step .n{font:500 10px var(--mono);letter-spacing:.16em;color:var(--volt)}
+.step h5{font:700 17px var(--disp);letter-spacing:-.015em;color:var(--ink);margin:10px 0 8px}
+.step p{font-size:13.5px;line-height:1.6;color:var(--ink-2)}
+.step.gate{border-color:rgba(255,90,90,.32);
+           background:linear-gradient(165deg,#181113,#0d0f10)}
+.step.gate .n{color:var(--red)}
+.step.gate::before,.step.gate::after{border-color:rgba(255,90,90,.35)}
+
+/* ---------- veto ---------- */
+.vwrap{display:grid;gap:26px;grid-template-columns:1fr}
+@media(min-width:980px){.vwrap{grid-template-columns:.92fr 1.08fr;gap:40px}}
+.limits{list-style:none;padding:0}
+.limits li{display:flex;justify-content:space-between;gap:16px;padding:13px 0;
+           border-bottom:1px solid var(--line);font:400 13.5px var(--mono)}
+.limits li span{color:var(--ink-3)} .limits li b{color:var(--ink);font-weight:600;white-space:nowrap}
+pre.code{background:#000;border:1px solid var(--line);border-radius:8px;padding:22px;
+         font:400 12.5px/1.8 var(--mono);color:#c3ccc7;overflow-x:auto;white-space:pre}
+.code .c{color:#4e5c53}.code .k{color:var(--volt)}.code .s{color:var(--cyan)}.code .r{color:var(--red)}
+
+/* ---------- pills ---------- */
+.pill{display:inline-block;font:600 9.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;
+      padding:3px 8px;border-radius:3px;border:1px solid;vertical-align:1px;white-space:nowrap}
+.p-impl{color:var(--volt);border-color:rgba(166,226,46,.4);background:rgba(166,226,46,.09)}
+.p-sim{color:var(--amber);border-color:rgba(240,165,60,.4);background:rgba(240,165,60,.09)}
+.p-plan{color:var(--cyan);border-color:rgba(53,214,232,.35);background:rgba(53,214,232,.08)}
+.p-block{color:var(--red);border-color:rgba(255,90,90,.4);background:rgba(255,90,90,.09)}
+
+/* ---------- stats ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin:30px 0}
+.stat{padding:18px 16px}
+.stat .v{font:800 clamp(24px,3.4vw,34px)/1 var(--disp);letter-spacing:-.03em;color:var(--ink)}
+.stat .v.up{color:var(--volt)} .stat .v.down{color:var(--red)}
+.stat .k{font:500 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;
+         color:var(--ink-3);margin-top:9px}
+.stat .n{font-size:12.5px;color:var(--ink-3);margin-top:5px;line-height:1.45}
+
+/* ---------- token ---------- */
+.tks{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:760px){.tks{grid-template-columns:1fr 1fr}}
+.tk{padding:24px}
+.tk h5{font:700 16px var(--disp);color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:9px}
+.tk h5::before{content:"";width:7px;height:7px;border-radius:50%}
+.tk.is h5::before{background:var(--volt);box-shadow:0 0 9px var(--volt-glow)}
+.tk.isnt h5::before{background:var(--red);box-shadow:0 0 9px rgba(255,90,90,.5)}
+.tk ul{margin:0;padding-left:18px;font-size:14.5px;line-height:1.65;color:var(--ink-2)}
+.tk li{margin-bottom:9px}
+.tk li::marker{color:var(--ink-3)}
+.pair{margin-top:14px;padding:26px}
+.pair h5{font:700 19px var(--disp);color:var(--ink);margin-bottom:14px}
+.pair p{font-size:15.5px;line-height:1.68;color:var(--ink-2);max-width:74ch}
+.pair strong{color:var(--ink);font-weight:600}
+.pair ul{margin:18px 0 0 18px;font-size:14.5px;line-height:1.62;color:var(--ink-2)}
+.pair li{margin-bottom:9px}
+.warn{margin-top:20px;padding:14px 16px;border-radius:4px;border:1px solid rgba(255,90,90,.28);
+      background:rgba(255,90,90,.05);font:400 12.5px/1.7 var(--mono);color:#e79a9a}
+
+/* ---------- table ---------- */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font:400 13.5px var(--mono);min-width:620px}
+th,td{text-align:left;padding:13px 18px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);
+   background:#0b0e10;position:sticky;top:0}
+td{color:var(--ink-2)}
+td:first-child{color:var(--ink)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:rgba(166,226,46,.03)}
+
+/* ---------- challenge ---------- */
+.days{display:grid;grid-template-columns:repeat(11,1fr);gap:6px;margin:32px 0}
+@media(max-width:640px){.days{grid-template-columns:repeat(6,1fr)}}
+.day{aspect-ratio:1;border:1px solid var(--line);border-radius:3px;background:var(--panel);
+     display:grid;place-items:center;font:500 11px var(--mono);color:var(--ink-3);transition:.15s}
+.day:hover{border-color:var(--volt);color:var(--volt);background:rgba(166,226,46,.07);
+           box-shadow:0 0 20px -7px var(--volt-glow)}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line);background:#000;padding:clamp(48px,7vw,76px) 0 56px;
+       position:relative;z-index:2}
+.fgrid{display:grid;gap:34px;grid-template-columns:1fr}
+@media(min-width:860px){.fgrid{grid-template-columns:1.6fr 1fr 1fr}}
+.fmark{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.fmark svg{width:30px;height:34px;filter:drop-shadow(0 0 10px var(--volt-glow))}
+.fmark span{font:800 24px/1 var(--disp);letter-spacing:.15em;color:var(--ink)}
+.ftag{font:500 11px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--volt);
+      margin-bottom:20px}
+.disc{font:400 12px/1.8 var(--mono);color:var(--ink-3);max-width:66ch}
+.disc strong{color:var(--ink-2);font-weight:500}
+footer h6{font:600 10px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);
+          margin-bottom:16px}
+footer ul{list-style:none;padding:0;font:400 13px var(--mono)}
+footer li{margin-bottom:11px}
+footer a{color:var(--ink-2);text-decoration:none;transition:.15s}
+footer a:hover{color:var(--volt)}
+</style>
+</head>
+<body>
+
+<div class="stage" aria-hidden="true">
+  <div class="haze"></div><div class="grid"></div>
+  <div class="bar l"></div><div class="bar r"></div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="gmark" viewBox="0 0 40 44">
+    <path d="M20 0 40 11v22L20 44 0 33V11Z" fill="#a6e22e"/>
+    <path d="M28.5 14.5H18a4.5 4.5 0 0 0-4.5 4.5v6a4.5 4.5 0 0 0 4.5 4.5h8.5V22h-6.8v3.6h3.1v1.4H18a1.9 1.9 0 0 1-1.9-1.9v-6A1.9 1.9 0 0 1 18 17.2h10.5Z" fill="#060809"/>
+  </symbol>
+</defs></svg>
+
+<div class="nav"><div class="wrap">
+  <a class="logo" href="#top"><svg><use href="#gmark"/></svg><span>GENIUS</span></a>
+  <nav>
+    <a href="#machine">Machine</a><a href="#agents">Agents</a><a href="#method">Method</a>
+    <a href="#veto">Veto</a><a href="#experiment">Experiment</a><a href="#token">$GENIUS</a>
+    <a href="#ledger">Status</a>
+  </nav>
+  <button id="wallet-btn" class="wbtn" type="button">Connect wallet</button>
+  <div id="wallet-panel" class="wpanel" hidden></div>
+</div></div>
+
+<div class="ticker"><div class="run">
+  <s><i>◆</i>Pre-launch — nothing is for sale</s><s><i>◆</i>No token exists yet</s>
+  <s><i>◆</i>Hardware is proposed, not purchased</s><s><i>◆</i>All trading shown is paper / simulated</s>
+  <s><i>◆</i>Not investment advice</s>
+  <s><i>◆</i>Pre-launch — nothing is for sale</s><s><i>◆</i>No token exists yet</s>
+  <s><i>◆</i>Hardware is proposed, not purchased</s><s><i>◆</i>All trading shown is paper / simulated</s>
+  <s><i>◆</i>Not investment advice</s>
+</div></div>
+
+<!-- 01 -->
+<header class="hero" id="top"><div class="wrap">
+  <div class="kicker"><b>01</b> / The Vision</div>
+  <div class="hero-mark"><svg viewBox="0 0 40 44"><use href="#gmark"/></svg></div>
+  <h1>Everyone is<br>a Scientist<span class="dot">.</span></h1>
+  <p class="sub">Curiosity is the starting point.</p>
+  <p class="lede">Markets are treated as a place to be right. We treat them as a place to
+    <strong>run experiments</strong>. GENIUS is a research lab where AI agents form hypotheses,
+    test them against data, size them under hard limits, execute them — and then audit
+    themselves, with the losses published next to the wins.</p>
+  <div class="cta">
+    <a class="btn solid" href="#experiment">See the first experiment</a>
+    <a class="btn ghost" href="#ledger">What's real today</a>
+  </div>
+  <div class="notice"><b>Read this first</b>
+    GENIUS is early. The token has not launched. The hardware has not been bought. Every result
+    on this site comes from a paper-traded simulation you can run yourself. We publish the
+    boundary between what is built and what is merely intended — and we keep it accurate.</div>
+</div></header>
+
+<!-- 02 -->
+<section id="machine"><div class="wrap">
+  <div class="kicker"><b>02</b> / The Machine</div>
+  <h2>Meet the <em>machine</em>.</h2>
+  <p class="dek">The target architecture is 33 NVIDIA DGX Spark units, stacked as three columns
+    of eleven. Each unit hosts six specialist agent roles — 198 roles in total. This is a
+    <strong>proposal under validation</strong>, not an inventory.</p>
+
+  <div class="machine" style="margin-top:40px">
+    <div class="mod rack">
+      <div class="rack-cap"><span>FIG. 1 — Proposed layout</span><b>3 × 11 · 198 roles</b></div>
+      <div class="cols">
+        <div class="col"><h4>Discovery</h4><div class="units"></div></div>
+        <div class="col"><h4>Validation</h4><div class="units"></div></div>
+        <div class="col"><h4>Operations</h4><div class="units"></div></div>
+      </div>
+      <div class="rack-key">
+        Each row = 1 DGX Spark · each dot = 1 agent role.<br>
+        <b>Discovery</b> generates hypotheses · <b>Validation</b> tries to kill them with
+        backtests and replay · <b>Operations</b> monitors and, once approved, executes.
+      </div>
+    </div>
+
+    <div>
+      <ul class="specs">
+        <li><span>Unit</span><b>NVIDIA DGX Spark (GB10)</b></li>
+        <li><span>Unified memory / unit</span><b>128 GB LPDDR5X</b></li>
+        <li><span>Units × agent roles</span><b>33 × 6 = 198</b></li>
+        <li><span>Street price observed</span><b>$3,999 – $4,699</b></li>
+        <li class="tot"><span>Hardware estimate (33 units)</span><b>~$132k – $155k</b></li>
+      </ul>
+      <p class="dek" style="margin-top:0">
+        <span class="pill p-block">Blocked</span> &nbsp;Purchase is gated on validation we have
+        not finished: sustained thermal behaviour under continuous load, power and cooling for a
+        stacked layout, and the interconnect question. NVIDIA documents pairing <strong>two</strong>
+        units over ConnectX-7 to share 256&nbsp;GB — it does not follow that 33 units behave as one
+        supercomputer. We treat them as 33 independent workers on a shared job queue until proven
+        otherwise.</p>
+      <p class="dek">The estimate excludes networking, power, racking, cooling, trading capital and
+        anything operational. And six agent roles does not imply six separate models — role
+        separation is a matter of prompts, tools and permissions, not silicon.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- 03 -->
+<section id="agents"><div class="wrap">
+  <div class="kicker"><b>03</b> / The Agents</div>
+  <h2>Six minds.<br>Different <em>responsibilities</em>.</h2>
+  <p class="dek">One model asked to "trade well" produces confident mush. Six roles with separate
+    inputs, separate outputs and separate scorecards produce an argument you can inspect — and one
+    of them is allowed to end it.</p>
+
+  <div class="agents" style="margin-top:40px">
+    <article class="mod ag">
+      <div class="top"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#a6e22e" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
+        <div><div class="nm">ATLAS</div><div class="rl">Fundamental Analyst</div></div></div>
+      <p>Reads news, macro releases and asset-level events. Every claim carries a source and a
+        date, or it does not count.</p>
+      <dl><b>In:</b> news feeds, econ calendar, filings<br>
+        <b>Out:</b> directional bias + cited events<br>
+        <b>Scored on:</b> bias vs. forward return, source quality</dl>
+    </article>
+
+    <article class="mod ag">
+      <div class="top"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#35d6e8" stroke-width="2" stroke-linejoin="round"><path d="M3 17l5-6 4 4 3-4 6 5"/><path d="M3 21h18"/></svg></div>
+        <div><div class="nm">EUCLID</div><div class="rl">Technical Analyst</div></div></div>
+      <p>Market structure, trend and levels — and most importantly, the exact price at which the
+        thesis is simply wrong.</p>
+      <dl><b>In:</b> OHLCV history<br>
+        <b>Out:</b> structure, levels, <b>invalidation price</b><br>
+        <b>Scored on:</b> level hit rate, invalidation accuracy</dl>
+    </article>
+
+    <article class="mod ag">
+      <div class="top"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#35d6e8" stroke-width="2" stroke-linecap="round"><path d="M4 6v12M8 9v6M12 3v18M16 8v8M20 11v2"/></svg></div>
+        <div><div class="nm">FLUX</div><div class="rl">Order Flow Analyst</div></div></div>
+      <p>The trade tape and the book: delta, volume by price, depth, liquidity, and candidate
+        absorption where aggressive orders meet a wall.</p>
+      <dl><b>In:</b> trades, volume-by-price, L2 depth <span class="pill p-impl">Depth live</span><br>
+        <b>Out:</b> delta trend, point of control, absorption flags<br>
+        <b>Scored on:</b> flow signal vs. next-bar continuation</dl>
+    </article>
+
+    <article class="mod ag">
+      <div class="top"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#a6e22e" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+        <div><div class="nm">HERMES</div><div class="rl">Execution Specialist</div></div></div>
+      <p>Takes approved orders and gets them filled: entries, exits, spread, fees, slippage. It
+        reports the cost of being right.</p>
+      <dl><b>In:</b> approved order, book conditions<br>
+        <b>Out:</b> fills, realised costs<br>
+        <b>Scored on:</b> slippage vs. decision price</dl>
+    </article>
+
+    <article class="mod ag">
+      <div class="top"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#a6e22e" stroke-width="2" stroke-linejoin="round"><path d="M5 3h11l4 4v14H5z"/><path d="M8 11h8M8 15h5"/></svg></div>
+        <div><div class="nm">LEDGER</div><div class="rl">Research &amp; Audit Analyst</div></div></div>
+      <p>Journals every decision — including the decision to do nothing — and grades them after
+        costs. Flags strategy decay before the equity curve does.</p>
+      <dl><b>In:</b> full decision journal, fills, outcomes<br>
+        <b>Out:</b> after-cost expectancy, decay flags<br>
+        <b>Scored on:</b> did it catch degradation early?</dl>
+    </article>
+
+    <article class="mod ag veto">
+      <div class="top"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#ff5a5a" stroke-width="2" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12h6"/></svg></div>
+        <div><div class="nm">VETO</div><div class="rl">Risk Manager · binding authority</div></div></div>
+      <p>Exposure, position size, loss limits. VETO does not offer an opinion — it returns approve
+        or reject, and reject is final. Its limits are arithmetic in code, not instructions in a
+        prompt, so no model can talk its way past them. An agent that wants a bigger position can
+        want it indefinitely.</p>
+      <dl><b>In:</b> proposal, equity, open risk, session P&amp;L<br>
+        <b>Out:</b> <b>APPROVE(size, stop)</b> or <b>REJECT(reason)</b><br>
+        <b>Scored on:</b> limit breaches — target zero<br>
+        <b>Override path:</b> none exists</dl>
+    </article>
+  </div>
+
+  <p class="dek" style="margin-top:32px">Two rules sit above all six.
+    <strong>"Do not trade" is a valid, recorded outcome</strong> — most cycles end there, and that
+    is the system working. And <strong>agreement between agents is never treated as evidence</strong>:
+    six models trained on overlapping data agreeing is a correlation, not a confirmation. Only the
+    after-cost result counts.</p>
+</div></section>
+
+<!-- 04 -->
+<section id="method"><div class="wrap">
+  <div class="kicker"><b>04</b> / The Method</div>
+  <h2>How GENIUS <em>reads</em> a market.</h2>
+  <p class="dek">One cycle per bar. Analysis is free, risk is enforced, everything is written down.</p>
+  <div class="flow" style="margin-top:40px">
+    <div class="mod step"><div class="n">STEP 01</div><h5>Observe</h5>
+      <p>Candles, trade tape and buy/sell split land in a shared context. The same snapshot for every agent.</p></div>
+    <div class="mod step"><div class="n">STEP 02</div><h5>Argue</h5>
+      <p>ATLAS, EUCLID and FLUX each file an independent report: stance, confidence, findings, invalidation.</p></div>
+    <div class="mod step"><div class="n">STEP 03</div><h5>Propose</h5>
+      <p>A proposal forms only when structure and flow agree and fundamentals do not strongly object. Otherwise: no trade.</p></div>
+    <div class="mod step gate"><div class="n">STEP 04 — GATE</div><h5>Risk review</h5>
+      <p>VETO sizes the position from the distance to invalidation, or rejects it. Code, not judgement.</p></div>
+    <div class="mod step"><div class="n">STEP 05</div><h5>Execute &amp; audit</h5>
+      <p>HERMES fills it with fees and slippage charged. LEDGER journals the cycle — trade or not — and scores it after costs.</p></div>
+  </div>
+</div></section>
+
+<!-- 05 -->
+<section id="veto"><div class="wrap">
+  <div class="kicker"><b>05</b> / The Veto</div>
+  <h2>The agent that can say <em>no</em>.</h2>
+  <p class="dek">Most AI trading demos fail in the same place: the model is asked to respect a risk
+    limit, and eventually it doesn't. We removed the possibility.</p>
+
+  <div class="vwrap" style="margin-top:40px">
+    <div>
+      <p class="dek" style="margin-top:0">The risk engine is ordinary code with no model in it. It
+        receives a proposal and returns a decision. There is no prompt to jailbreak, no confidence
+        score to inflate, no persuasive argument that changes the arithmetic.</p>
+      <ul class="limits" style="margin-top:26px">
+        <li><span>Risk per trade</span><b>≤ 0.5% of equity</b></li>
+        <li><span>Daily loss limit</span><b>2% → session halt</b></li>
+        <li><span>Gross exposure</span><b>≤ 25% of equity</b></li>
+        <li><span>Consecutive losses</span><b>3 → cooldown</b></li>
+        <li><span>Committee confidence floor</span><b>0.55</b></li>
+        <li><span>Minimum stop distance</span><b>0.2% (noise band)</b></li>
+        <li><span>Concurrent positions</span><b>1</b></li>
+      </ul>
+    </div>
+    <div>
+<pre class="code"><span class="c"># risk.py — the veto is arithmetic, not judgement</span>
+<span class="k">def</span> review(self, p: TradeProposal, bar) -&gt; RiskDecision:
+    <span class="k">if</span> self.halted:
+        <span class="k">return</span> RiskDecision(<span class="r">False</span>, [<span class="s">"VETO: daily loss limit"</span>])
+    <span class="k">if</span> bar &lt; self.cooldown_until_bar:
+        <span class="k">return</span> RiskDecision(<span class="r">False</span>, [<span class="s">"VETO: loss-streak cooldown"</span>])
+    <span class="k">if</span> p.confidence &lt; MIN_CONFIDENCE:
+        <span class="k">return</span> RiskDecision(<span class="r">False</span>, [<span class="s">"VETO: below confidence floor"</span>])
+
+    stop_dist = abs(p.price - p.invalidation)
+    <span class="k">if</span> stop_dist &lt; p.price * MIN_STOP_DISTANCE_PCT:
+        <span class="k">return</span> RiskDecision(<span class="r">False</span>, [<span class="s">"VETO: stop inside noise"</span>])
+
+    <span class="c"># size is DERIVED, never proposed by an agent</span>
+    qty = (equity * MAX_RISK_PER_TRADE) / stop_dist
+    <span class="k">return</span> RiskDecision(<span class="k">True</span>, reasons, qty=qty, stop=p.invalidation)</pre>
+      <p style="margin-top:16px;font:400 12.5px/1.75 var(--mono);color:var(--ink-3)">
+        Position size is <em>derived</em> from the distance to invalidation. No agent proposes a
+        size, so no agent can inflate one.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- 06 -->
+<section id="experiment"><div class="wrap">
+  <div class="kicker"><b>06</b> / The Experiment</div>
+  <h2>Our first public <em>experiment</em>.</h2>
+  <p class="dek">A working six-agent pipeline running 33 simulated sessions on BTC-USD, with every
+    decision journaled and every result reported after fees and slippage.</p>
+
+  <div class="stats">
+    <div class="mod stat"><div class="v" data-stat="cycles">792</div><div class="k">Research cycles</div><div class="n" data-note="sessions">33 sessions × 24 bars</div></div>
+    <div class="mod stat"><div class="v" data-stat="no_trade">287</div><div class="k">No-trade calls</div><div class="n">Standing aside is the default</div></div>
+    <div class="mod stat"><div class="v" data-stat="vetoes">33</div><div class="k">Risk vetoes</div><div class="n">All enforced, none overridden</div></div>
+    <div class="mod stat"><div class="v" data-stat="trades">24</div><div class="k">Trades taken</div><div class="n" data-note="trade_pct">~3% of cycles reached execution</div></div>
+    <div class="mod stat"><div class="v down" data-stat="pnl">−$2,742</div><div class="k">Net P&amp;L after costs</div><div class="n" data-note="pnl">Negative. Published as-is.</div></div>
+    <div class="mod stat"><div class="v down" data-stat="dd">−4.4%</div><div class="k">Max drawdown</div><div class="n">Within design tolerance</div></div>
+  </div>
+
+  <p id="run-meta" class="dek" style="margin-top:0;font:400 12.5px/1.8 var(--mono);color:var(--ink-3)"></p>
+
+  <p class="dek">The experiment is deliberately unflattering. The first published run ended
+    <strong>down</strong> — a 33% win rate and negative expectancy after costs — and LEDGER raised
+    the degradation flag exactly as designed. We publish it anyway, because a lab that only shows
+    its winning runs is not a lab. The number that matters right now is not the P&amp;L: it is that
+    the risk engine held every limit across 792 cycles, and that 287 of those cycles correctly
+    ended in <strong>no trade</strong>.</p>
+
+  <p style="margin-top:22px;font:400 12.5px/1.8 var(--mono);color:var(--ink-3)">
+    <span class="pill p-sim">Simulated</span> Paper broker, synthetic regime-switching market,
+    seeded for reproducibility. Fundamental events are fixtures. Nothing here is a forecast, a
+    track record, or a promise. Run it yourself: <code style="color:var(--volt)">python3 lab/run_demo.py</code></p>
+
+  <div class="cta" style="justify-content:flex-start;margin-top:30px">
+    <a class="btn solid" href="console/">Open the lab console</a>
+    <a class="btn ghost" href="#ledger">See what's blocked</a>
+  </div>
+</div></section>
+
+<!-- 07 -->
+<section id="token"><div class="wrap">
+  <div class="kicker"><b>07</b> / The Token</div>
+  <h2>What <em>$GENIUS</em> represents.</h2>
+  <p class="dek">Said plainly, because the alternative is how people get hurt.</p>
+
+  <div class="tks" style="margin-top:40px">
+    <div class="mod tk is"><h5>What it is</h5><ul>
+      <li>A community token attached to a research project that publishes its work</li>
+      <li>A coordination and attention mechanism for people who want to watch a lab operate in the open</li>
+      <li>A cultural bet on the idea that <em>everyone is a scientist</em></li>
+    </ul></div>
+    <div class="mod tk isnt"><h5>What it is not</h5><ul>
+      <li>Not a share, a security, or a claim on any revenue</li>
+      <li>Not ownership of, or any right to, the hardware</li>
+      <li>Not a claim on trading profits, and not backed by them</li>
+      <li>Not a promise of value, liquidity, or return</li>
+    </ul></div>
+  </div>
+
+  <div class="mod pair">
+    <h5>The proposed NVIDIA-exposure pair <span class="pill p-plan">Under validation</span></h5>
+    <p>The intent is to pair $GENIUS against a tokenised asset tracking NVIDIA (NVDA). The
+      candidate we have identified is <strong>NVDAx</strong>, an xStock tracker certificate issued
+      by <strong>Backed Finance</strong> (Switzerland / Backed Assets, Jersey) as an SPL token on
+      Solana, collateralised by shares held with a regulated custodian. Observed DEX liquidity is
+      roughly <strong>$1M</strong> — thin enough that pairing against it is a genuine design
+      constraint, not a formality.</p>
+    <ul>
+      <li>Still to verify: exact mint address, current issuer terms, transfer restrictions,
+        redemption mechanics, and whether a $GENIUS pair is permitted under those terms.</li>
+      <li>Thin quote-asset liquidity means our own pool would likely dominate price discovery on
+        that pair — a risk to price in, not to ignore.</li>
+      <li>This is an architectural intention. It has not been implemented.</li>
+    </ul>
+    <p class="warn">A pair with a tokenised NVDA tracker implies no partnership with, endorsement
+      by, or affiliation with NVIDIA Corporation, and gives $GENIUS holders no rights over NVIDIA
+      shares.</p>
+  </div>
+
+  <div class="mod pair" style="margin-top:14px">
+    <h5>Connect a wallet <span class="pill p-impl">Read-only</span></h5>
+    <p>You can connect a Solana wallet now. It does exactly three things: shows your public
+      address, shows your SOL balance, and — if you choose — asks your wallet to sign a message
+      you can read in full, proving you control the address. That is all it can ever do.</p>
+    <ul>
+      <li>This site <strong>never requests a transaction signature</strong>. It cannot move funds
+        or approve token transfers — the mechanism behind every wallet-drainer scam. A test in the
+        codebase fails the build if that code ever appears.</li>
+      <li>Your private key and seed phrase never leave your wallet. There is no code path here
+        that could see them, and no one legitimate will ever ask for them.</li>
+      <li>There is nothing to claim, buy, mint or allowlist. If a page that looks like this one
+        asks you to, it is not us.</li>
+    </ul>
+    <p style="margin-top:16px"><button class="btn solid" type="button" data-open-wallet>Connect wallet</button></p>
+  </div>
+</div></section>
+
+<!-- 08 -->
+<section id="challenge"><div class="wrap">
+  <div class="kicker"><b>08</b> / The Challenge</div>
+  <h2>The <em>33-Day</em> Challenge.</h2>
+  <p class="dek">Thirty-three consecutive sessions. One public report per day: the hypothesis, what
+    the agents said, what the risk engine did, and the result after costs — win, loss, or nothing
+    at all.</p>
+  <div class="days"></div>
+  <p class="dek">The challenge is a commitment to publication, not to profit. Losing days are
+    published at the same size and on the same schedule as winning ones. If the strategy degrades,
+    the audit agent's flag goes in the report. If a day ends with no trade taken, that is the
+    report. The only failure condition is silence.</p>
+  <p style="margin-top:20px;font:400 12.5px/1.8 var(--mono);color:var(--ink-3)">
+    <span class="pill p-sim">Simulated</span> Day 1 runs on paper. Moving any session to live
+    capital requires a documented decision, a funded account, and a published change of status on
+    this page — never a quiet switch.</p>
+</div></section>
+
+<!-- 09 -->
+<section id="ledger"><div class="wrap">
+  <div class="kicker"><b>09</b> / The Ledger</div>
+  <h2>What's <em>real</em> today.</h2>
+  <p class="dek">The honest ledger. We would rather lose your attention here than earn it
+    dishonestly somewhere else.</p>
+  <div class="tbl" style="margin-top:36px"><table>
+    <thead><tr><th>Component</th><th>Status</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Six-agent research pipeline</td><td><span class="pill p-impl">Implemented</span></td><td>Runs locally, deterministic, reproducible</td></tr>
+      <tr><td>Risk engine &amp; veto</td><td><span class="pill p-impl">Implemented</span></td><td>Pure code, enforced on every cycle</td></tr>
+      <tr><td>Paper broker (fees + slippage)</td><td><span class="pill p-impl">Implemented</span></td><td>All P&amp;L reported after costs</td></tr>
+      <tr><td>Decision journal &amp; audit metrics</td><td><span class="pill p-impl">Implemented</span></td><td>JSONL, one entry per cycle</td></tr>
+      <tr><td>Lab console &amp; this site</td><td><span class="pill p-impl">Implemented</span></td><td>Static, no backend required</td></tr>
+      <tr><td>Market data</td><td><span class="pill p-impl">Implemented</span></td><td>Live BTC-USD candles, trade tape and level-2 depth from a public exchange API; synthetic fallback if unreachable</td></tr>
+      <tr><td>Fundamental news inputs</td><td><span class="pill p-impl">Implemented</span></td><td>Live RSS headlines, keyword-scored, time-gated so no bar sees its future</td></tr>
+      <tr><td>LLM reasoning layer</td><td><span class="pill p-block">Blocked</span></td><td>Agents are rule-based today. Needs an API key; models will interpret, never override limits</td></tr>
+      <tr><td>Order-book depth / DOM</td><td><span class="pill p-impl">Implemented</span></td><td>Level-2 snapshot each run, recorded to disk; continuous streaming is planned</td></tr>
+      <tr><td>Daily automated run</td><td><span class="pill p-impl">Implemented</span></td><td>GitHub Actions: tests, live run, commit, redeploy — no servers, no keys</td></tr>
+      <tr><td>Wallet connect (Solana)</td><td><span class="pill p-impl">Implemented</span></td><td>Read-only: public address, balance, message-signature ownership proof. Never requests a transaction signature — enforced by a build test</td></tr>
+      <tr><td>Footprint &amp; replay tooling</td><td><span class="pill p-plan">Planned</span></td><td>Studied against public references; nothing proprietary copied</td></tr>
+      <tr><td>Licensed futures MBO data</td><td><span class="pill p-block">Blocked</span></td><td>Needs a vendor contract and exchange fees</td></tr>
+      <tr><td>33× DGX Spark cluster</td><td><span class="pill p-block">Blocked</span></td><td>Not purchased; power, cooling and interconnect unvalidated</td></tr>
+      <tr><td>Live execution with real capital</td><td><span class="pill p-block">Blocked</span></td><td>Needs venue, keys, capital and compliance review</td></tr>
+      <tr><td>$GENIUS token</td><td><span class="pill p-block">Blocked</span></td><td>Does not exist. No sale, no presale, no allocation.</td></tr>
+      <tr><td>NVDA-exposure trading pair</td><td><span class="pill p-block">Blocked</span></td><td>Candidate identified; terms and liquidity unverified</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="fgrid">
+    <div>
+      <div class="fmark"><svg viewBox="0 0 40 44"><use href="#gmark"/></svg><span>GENIUS</span></div>
+      <div class="ftag">Everyone is a Scientist.</div>
+      <p class="disc"><strong>GENIUS is a research and community project.</strong> Nothing on this
+        page is investment, financial, legal or tax advice, an offer to sell, or a solicitation to
+        buy any asset. All performance shown is simulated on paper with no capital at risk;
+        simulated results carry well-known biases and do not predict real outcomes. Hardware
+        described is proposed, not owned. No token has launched, and any token that launches will
+        carry no ownership, revenue, profit or governance rights over anything described here.
+        NVIDIA, DGX and DGX Spark are trademarks of NVIDIA Corporation; GENIUS is not affiliated
+        with, endorsed by, or partnered with NVIDIA. Other platforms referenced are studied as
+        public prior art only — no proprietary technology is copied and no integration is implied.
+        Digital assets are volatile and you can lose everything you put in.</p>
+    </div>
+    <div><h6>The lab</h6><ul>
+      <li><a href="#machine">The machine</a></li><li><a href="#agents">Six agents</a></li>
+      <li><a href="#veto">The veto</a></li><li><a href="#experiment">First experiment</a></li>
+      <li><a href="console/">Lab console</a></li>
+    </ul></div>
+    <div><h6>Status key</h6><ul>
+      <li><span class="pill p-impl">Implemented</span> shipped &amp; runnable</li>
+      <li><span class="pill p-sim">Simulated</span> real code, synthetic data</li>
+      <li><span class="pill p-plan">Planned</span> designed, unbuilt</li>
+      <li><span class="pill p-block">Blocked</span> needs a dependency</li>
+    </ul></div>
+  </div>
+</div></footer>
+
+<script src="console/data.js"></script>
+<script src="app.js" defer></script>
+<script src="wallet.js" defer></script>
+</body>
+</html>

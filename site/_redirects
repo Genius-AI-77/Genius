@@ -1,0 +1,5 @@
+# Netlify / Cloudflare Pages redirect rules.
+# Harmless on hosts that ignore this file (Vercel, GitHub Pages, S3).
+/dashboard/*   /console/:splat   301
+/lab           /console/         301
+/*             /404.html         404
