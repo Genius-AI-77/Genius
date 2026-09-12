@@ -5,8 +5,9 @@ one auditor (LEDGER). Runs one cycle per hourly bar in one of three modes:
 
   shadow  computes every order and fills it on paper against the live market
           with the venue's real fee model. Sends nothing. Default.
-  live    places real orders on Drift Protocol (Solana perps), one sub-account
-          per book, with exchange-side stop orders mirroring our own.
+  live    places real orders on Hyperliquid perps, one sub-account per book,
+          with exchange-side stop orders mirroring our own. The desk holds an
+          agent key that can trade but cannot withdraw.
   halted  the kill switch has been pulled: flatten everything, trade nothing.
 
 Reuses the lab's agents, risk engine and data layer unchanged. The only new

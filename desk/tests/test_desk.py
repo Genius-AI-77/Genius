@@ -112,7 +112,7 @@ class DeskBehaviour(unittest.TestCase):
         self.assertFalse(d2.state["halted"])
 
     def test_lot_rounding_rejects_dust(self):
-        d = make_desk(self.tmp, order_step=0.01, min_order=0.01)   # absurd lot size for a $33 book
+        d = make_desk(self.tmp, order_step=1.0, min_order=1.0)     # 1 SOL lots: more than a $33 book can buy
         e = d.run_cycle()
         for v in e["books"].values():
             self.assertNotEqual(v["decision"], "ENTERED")
@@ -137,14 +137,15 @@ class DeskBehaviour(unittest.TestCase):
         self.assertEqual(len(p["desk"]["books"]), 3)
         self.assertEqual([r["agent"] for r in p["reports"]], ["ATLAS", "EUCLID", "FLUX", "VETO", "HERMES", "LEDGER"])
         blob = json.dumps(p)
-        for word in ("DESK_WALLET_KEY", "x-access-token", "secret"):
+        for word in ("DESK_AGENT_KEY", "x-access-token", "secret"):
             self.assertNotIn(word, blob)
 
     def test_secrets_repr_redacts(self):
-        s = Secrets(wallet_key="5Kb8kLf9zgWQnogidDA76MzPL6TsZZY36hWXMssSzNydYXYB9KF",
+        s = Secrets(agent_key="0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318",
+                    account="0x1111111111111111111111111111111111111111",
                     git_remote="https://x-access-token:ghp_abc@github.com/x/y.git")
-        self.assertNotIn("5Kb8", repr(s)); self.assertNotIn("ghp_", str(s))
-        self.assertIn("wallet_key=set", repr(s))
+        self.assertNotIn("4c0883", repr(s)); self.assertNotIn("ghp_", str(s))
+        self.assertIn("agent_key=set", repr(s))
 
 
 class ShadowVenueMaths(unittest.TestCase):

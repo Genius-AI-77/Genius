@@ -184,9 +184,10 @@ class OrderFlowAnalyst:
         avg_vol = sum(c.volume for c in ctx.candles[-60:]) / min(60, len(ctx.candles))
 
         # volume-by-price over the last 60 bars → point of control
-        profile: dict[int, float] = {}
+        profile: dict[float, float] = {}
+        step = max(0.01, ctx.now.close * 0.0035)      # ~0.35% price buckets, any instrument
         for c in ctx.candles[-60:]:
-            bucket = int(c.close // 250) * 250
+            bucket = round(int(c.close / step) * step, 2)
             profile[bucket] = profile.get(bucket, 0.0) + c.volume
         poc = max(profile, key=profile.get) if profile else None
 

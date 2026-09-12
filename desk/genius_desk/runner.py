@@ -35,7 +35,8 @@ from genius_lab.news import live_news                       # noqa: E402
 from genius_lab.risk import RiskEngine, TradeProposal       # noqa: E402
 
 from .config import DeskConfig, Secrets                     # noqa: E402
-from .venue import DriftVenue, ShadowVenue, Venue           # noqa: E402
+from .venue import HyperliquidVenue, ShadowVenue, Venue
+from .solana_venue import SolanaVenue           # noqa: E402
 
 
 class _BookEquity:
@@ -82,15 +83,23 @@ class Desk:
         names = [b.name for b in cfg.books]
         if venue is not None:
             self.venue = venue
-        elif cfg.mode == "live":
+        elif cfg.mode == "live" and cfg.venue == "solana":
             if not self.secrets.wallet_key:
                 raise RuntimeError("live mode needs DESK_WALLET_KEY in the secrets file")
-            self.venue = DriftVenue({b.name: b.sub_account for b in cfg.books},
-                                    cfg.drift_market, self.secrets.rpc_url or cfg.rpc_url,
-                                    self.secrets.wallet_key)
+            self.venue = SolanaVenue(names, self.secrets.wallet_key, self.secrets.rpc_url)
+        elif cfg.mode == "live":
+            if not (self.secrets.agent_key and self.secrets.account):
+                raise RuntimeError("live mode needs DESK_AGENT_KEY and DESK_ACCOUNT in the secrets file")
+            missing = [b.name for b in cfg.books if b.name not in cfg.hl_books]
+            if missing:
+                raise RuntimeError(f"config.hl_books is missing sub-account addresses for {missing}")
+            self.venue = HyperliquidVenue({b.name: cfg.hl_books[b.name] for b in cfg.books},
+                                          self.secrets.account, self.secrets.agent_key,
+                                          coin=cfg.coin, testnet=self.secrets.testnet)
         else:
             self.venue = ShadowVenue(names, cfg.starting_cash_per_book,
                                      mark=self.state.get("last_mark", 0.0) or 0.0)
+            self.venue.long_only = (cfg.venue == "solana")   # shadow mirrors the real venue
         if self.state.get("venue"):
             self.venue.restore(self.state["venue"])
 
@@ -118,7 +127,8 @@ class Desk:
     # ------------------------------------------------------------ state
     def _load_state(self) -> dict:
         if os.path.exists(self.state_path):
-            return json.load(open(self.state_path))
+            with open(self.state_path) as f:
+                return json.load(f)
         return {"halted": False, "halt_reason": "", "cycles": 0, "equity_curve": [],
                 "books": {}, "last_bar_ts": 0, "last_mark": 0.0, "session_day": ""}
 
@@ -134,7 +144,8 @@ class Desk:
         self.state["venue"] = self.venue.snapshot()
         self.state["last_mark"] = self.venue.mark_price()
         tmp = self.state_path + ".tmp"
-        json.dump(self.state, open(tmp, "w"))
+        with open(tmp, "w") as f:
+            json.dump(self.state, f)
         os.replace(tmp, self.state_path)
 
     def _journal(self, entry: dict):
@@ -178,7 +189,7 @@ class Desk:
                 mark = self.venue.mark_price()
         if not mark:
             return {"ok": False, "error": "no mark price from venue"}
-        qty = self.cfg.min_order
+        qty = max(self.cfg.min_order, round(5.0 / mark, 4)) if getattr(self.venue, "long_only", False) else self.cfg.min_order
         fill_in = self.venue.open(book, "long", qty, mark, mark * 0.97, 0.0)
         closed = self.venue.close(book, self.venue.mark_price() or mark, 0.0, "connectivity probe")
         closed.reason = "connectivity probe (system check, not an agent decision)"
@@ -193,7 +204,8 @@ class Desk:
     def _market(self):
         """Live market bundle, or a synthetic one when offline (tests)."""
         if self.offline:
-            candles = synthetic_candles(self.cfg.history_bars, seed=int(time.time()) % 1000)
+            candles = synthetic_candles(self.cfg.history_bars, seed=int(time.time()) % 1000,
+                                        start_price=100.0 if self.cfg.coin == "SOL" else 65_000.0)
             return candles, None, None, None
         bundle = fetch_live(self.cfg.instrument, bars=self.cfg.history_bars,
                             record_dir=self.cfg.data_dir)
@@ -278,6 +290,8 @@ class Desk:
                          (tech.data.get("swing_low") if rep.stance == "long" else tech.data.get("swing_high")))
                 if rep.stance == "flat":
                     detail = f"{b.name} has no directional read"
+                elif rep.stance == "short" and getattr(self.venue, "long_only", False):
+                    detail = f"{b.name} reads short; spot desk stands aside (long only)"
                 elif inval is None:
                     detail = "no structural stop available"
                 else:
@@ -349,6 +363,8 @@ class Desk:
         """Live only: every book's venue position must match what we think we hold."""
         if self.venue.mode != "live":
             return ""
+        if hasattr(self.venue, "reconcile"):
+            return self.venue.reconcile()
         problems = []
         for b in self.books.values():
             p = self.venue.position(b.name)
@@ -363,10 +379,34 @@ class Desk:
         bs = self.cfg.bar_seconds
         return (int(now // bs) + 1) * bs + 45          # 45s after the bar closes
 
+    def watch_stops(self) -> list:
+        """Between bars: close any book whose stop the market has crossed.
+        Venues with exchange-side stops don't need this; spot does."""
+        if not hasattr(self.venue, "check_stops") or self.state.get("halted"):
+            return []
+        closed = self.venue.check_stops()
+        for c in closed:
+            b = self.books.get(c.book)
+            if b:
+                b.risk.record_trade_result(c.pnl, self.state.get("cycles", 0))
+                b.entry_bar_ts = 0
+                b.last_decision, b.last_detail = "NO_TRADE", "stopped out between bars"
+            self._journal({"type": "trade_closed", "ts": int(time.time()), "book": c.book, "trade": c.to_dict()})
+        if closed:
+            self.state["fill_last_cycle"] = True
+            self.save()
+        return closed
+
     def loop(self, on_cycle=None):
         while True:
             wake = self.next_bar_wall_time()
-            time.sleep(max(1.0, wake - time.time()))
+            while time.time() < wake - 5:
+                time.sleep(min(60.0, max(1.0, wake - 5 - time.time())))
+                try:
+                    if self.watch_stops() and on_cycle:
+                        on_cycle(self, {"bar": "stop"})
+                except Exception as e:
+                    self._journal({"type": "error", "ts": int(time.time()), "error": "watch_stops: " + repr(e)[:300]})
             try:
                 entry = self.run_cycle()
                 if on_cycle:

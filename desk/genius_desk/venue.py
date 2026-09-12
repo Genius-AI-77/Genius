@@ -1,12 +1,13 @@
 """Venues. One interface, two implementations.
 
-    ShadowVenue  fills on paper against the live mark price with Drift's fee
+    ShadowVenue  fills on paper against the live mark price with Hyperliquid's fee
                  schedule. Sends nothing anywhere. Used until the desk is
                  switched to live, and always available for dry runs.
-    DriftVenue   Drift Protocol perpetuals on Solana. One sub-account per book
-                 so the books never net against each other on-chain. Every
-                 entry also places a reduce-only trigger order at the stop,
-                 so a dead runner never leaves a position unprotected.
+    HyperliquidVenue  Hyperliquid perpetuals. One sub-account per book so the
+                 books never net against each other. Every entry also places a
+                 reduce-only stop order on the exchange, so a dead runner never
+                 leaves a position unprotected. The desk holds only an agent
+                 key, which can trade but cannot withdraw.
 
 HERMES is the only caller of `open` / `close` / `flatten`. Nothing else in the
 desk holds the wallet.
@@ -17,8 +18,8 @@ from __future__ import annotations
 import time
 from dataclasses import asdict, dataclass, field
 
-# Drift taker fee, base tier. Rebates for makers exist but the desk takes.
-DRIFT_TAKER_BPS = 10.0
+# Hyperliquid taker fee, base tier (0.045%). Makers get rebates; the desk takes.
+TAKER_BPS = 4.5
 
 
 @dataclass
@@ -84,12 +85,12 @@ class Venue:
 # ---------------------------------------------------------------- shadow
 
 class ShadowVenue(Venue):
-    """Paper fills against the live mark, Drift fee model, per-book equity."""
+    """Paper fills against the live mark, Hyperliquid fee model, per-book equity."""
 
     mode = "shadow"
 
     def __init__(self, books: list[str], starting_cash: float, mark: float,
-                 fee_bps: float = DRIFT_TAKER_BPS, slippage_k: float = 0.05):
+                 fee_bps: float = TAKER_BPS, slippage_k: float = 0.05):
         self.fee_bps = fee_bps
         self.slippage_k = slippage_k
         self._mark = mark
@@ -172,137 +173,156 @@ class ShadowVenue(Venue):
         self.fills = [Fill(**f) for f in snap.get("fills", [])]
 
 
-# ------------------------------------------------------------------ drift
+# ------------------------------------------------------------ hyperliquid
 
-class DriftVenue(Venue):
-    """Drift Protocol adapter. Requires `driftpy` and a funded wallet.
+def _px5(px: float) -> float:
+    """Hyperliquid prices: at most 5 significant figures, at most 6 decimals."""
+    return round(float(f"{px:.5g}"), 6)
 
-    Imported lazily so the shadow desk has no dependency on it. Every public
-    method is synchronous; driftpy is async, so calls run through one event
-    loop owned by this object.
 
-    Sub-accounts: book i trades on sub-account `sub_account[i]`. Each holds its
-    own USDC collateral and positions, so books never net against each other.
+class HyperliquidVenue(Venue):
+    """Hyperliquid perpetuals adapter (official `hyperliquid-python-sdk`).
+
+    Identity model (this is the security design, read it once):
+      * `account_address`  the master wallet's PUBLIC address. Holds the funds.
+      * `agent_key`        the private key of an API/agent wallet the master
+                           approved in the Hyperliquid UI. It can TRADE for the
+                           master and its sub-accounts. It CANNOT withdraw.
+                           This is the only key the desk ever holds.
+      * one sub-account per book, addressed through `vault_address`, so the
+        books never net against each other.
+
+    Every entry also places a reduce-only stop-loss trigger on the exchange.
     """
 
     mode = "live"
 
-    def __init__(self, books: dict[str, int], market: str, rpc_url: str, wallet_key: str,
-                 fee_bps: float = DRIFT_TAKER_BPS):
-        import asyncio
-        from driftpy.constants.perp_markets import mainnet_perp_market_configs
-        from driftpy.drift_client import DriftClient
-        from driftpy.keypair import load_keypair
-        from solana.rpc.async_api import AsyncClient
+    def __init__(self, books: dict[str, str], account_address: str, agent_key: str,
+                 coin: str = "BTC", testnet: bool = False, fee_bps: float = 4.5):
+        from eth_account import Account
+        from hyperliquid.exchange import Exchange
+        from hyperliquid.info import Info
+        from hyperliquid.utils import constants
 
-        self.books = books
-        self.fee_bps = fee_bps
-        self.loop = asyncio.new_event_loop()
-        cfg = next((m for m in mainnet_perp_market_configs if m.symbol == market), None)
-        if cfg is None:
-            raise ValueError(f"unknown Drift market {market!r}")
-        self.market_index = cfg.market_index
-        self.kp = load_keypair(wallet_key)           # base58 or JSON array
-        self.client = DriftClient(AsyncClient(rpc_url), self.kp, "mainnet")
-        self.loop.run_until_complete(self.client.subscribe())
-        for sub in books.values():
-            self.loop.run_until_complete(self.client.add_user(sub))
+        self.books = books                      # book name -> sub-account address
+        self.coin = coin
+        self.fee_bps = fee_bps                  # taker, base tier
+        self.account = account_address
+        self.base_url = constants.TESTNET_API_URL if testnet else constants.MAINNET_API_URL
+        self.info = Info(self.base_url, skip_ws=True)
+        wallet = Account.from_key(agent_key)
+        self.agent_address = wallet.address
+        # one Exchange per book, each acting on its sub-account (vault_address)
+        self.ex = {b: Exchange(wallet, self.base_url,
+                               vault_address=(None if addr.lower() == account_address.lower() else addr),
+                               account_address=account_address)
+                   for b, addr in books.items()}
+        meta = self.info.meta()
+        asset = next(a for a in meta["universe"] if a["name"] == coin)
+        self.sz_decimals = int(asset["szDecimals"])
         self.fills: list[Fill] = []
         self.closed: list[Closed] = []
-        self._open_meta: dict[str, dict] = {}         # book -> {entry, fee, since_ts, side, qty}
+        self._open_meta: dict[str, dict] = {}
 
-    # -- helpers -------------------------------------------------------------
-    def _run(self, coro):
-        return self.loop.run_until_complete(coro)
-
+    # -- reads -----------------------------------------------------------------
     def mark_price(self) -> float:
-        from driftpy.constants.numeric_constants import PRICE_PRECISION
-        od = self.client.get_oracle_price_data_for_perp_market(self.market_index)
-        return od.price / PRICE_PRECISION
+        return float(self.info.all_mids()[self.coin])
+
+    def _state(self, book: str) -> dict:
+        return self.info.user_state(self.books[book])
 
     def equity(self, book: str) -> float:
-        from driftpy.constants.numeric_constants import QUOTE_PRECISION
-        user = self.client.get_user(self.books[book])
-        return user.get_total_collateral() / QUOTE_PRECISION
+        return float(self._state(book)["marginSummary"]["accountValue"])
 
     def position(self, book: str) -> Position | None:
-        from driftpy.constants.numeric_constants import BASE_PRECISION, QUOTE_PRECISION
-        pp = self.client.get_perp_position(self.market_index, self.books[book])
-        if pp is None or pp.base_asset_amount == 0:
-            return None
-        qty = abs(pp.base_asset_amount) / BASE_PRECISION
-        side = "long" if pp.base_asset_amount > 0 else "short"
-        entry = abs(pp.quote_entry_amount) / QUOTE_PRECISION / qty if qty else 0.0
-        mark = self.mark_price()
-        unreal = (mark - entry) * qty * (1 if side == "long" else -1)
-        meta = self._open_meta.get(book, {})
-        return Position(side=side, qty=qty, entry=round(entry, 2), mark=mark,
-                        unrealized=round(unreal, 4), stop=meta.get("stop"),
-                        since_ts=meta.get("since_ts", 0))
+        for ap in self._state(book).get("assetPositions", []):
+            p = ap["position"]
+            if p["coin"] != self.coin:
+                continue
+            szi = float(p["szi"])
+            if szi == 0:
+                continue
+            side = "long" if szi > 0 else "short"
+            entry = float(p.get("entryPx") or 0)
+            meta = self._open_meta.get(book, {})
+            return Position(side=side, qty=abs(szi), entry=entry, mark=self.mark_price(),
+                            unrealized=float(p.get("unrealizedPnl") or 0),
+                            stop=meta.get("stop"), since_ts=meta.get("since_ts", 0))
+        return None
 
-    def _order(self, sub: int, direction: str, qty: float, reduce_only: bool,
-               trigger: float | None = None, trigger_cond: str | None = None) -> str:
-        from driftpy.constants.numeric_constants import BASE_PRECISION, PRICE_PRECISION
-        from driftpy.types import (MarketType, OrderParams, OrderTriggerCondition,
-                                   OrderType, PositionDirection)
-        params = OrderParams(
-            order_type=OrderType.TriggerMarket() if trigger else OrderType.Market(),
-            base_asset_amount=int(round(qty * BASE_PRECISION)),
-            market_index=self.market_index,
-            direction=PositionDirection.Long() if direction == "long" else PositionDirection.Short(),
-            market_type=MarketType.Perp(),
-            reduce_only=reduce_only,
-            trigger_price=int(round(trigger * PRICE_PRECISION)) if trigger else None,
-            trigger_condition=(OrderTriggerCondition.Below() if trigger_cond == "below"
-                               else OrderTriggerCondition.Above()),
-        )
-        sig = self._run(self.client.place_perp_order(params, sub))
-        return str(sig)
+    def _sz(self, qty: float) -> float:
+        return round(qty, self.sz_decimals)
 
-    def _cancel_all(self, sub: int):
-        from driftpy.types import MarketType
+    @staticmethod
+    def _fill_of(resp: dict) -> tuple[float, float, str]:
+        """(filled size, avg price, oid) from an order response, or raise."""
+        if resp.get("status") != "ok":
+            raise RuntimeError(f"venue rejected: {resp}")
+        st = resp["response"]["data"]["statuses"][0]
+        if "error" in st:
+            raise RuntimeError(f"venue error: {st['error']}")
+        if "filled" in st:
+            f = st["filled"]
+            return float(f["totalSz"]), float(f["avgPx"]), str(f["oid"])
+        return 0.0, 0.0, str(st.get("resting", {}).get("oid", ""))
+
+    def _last_fill_hash(self, book: str) -> str | None:
         try:
-            self._run(self.client.cancel_orders(MarketType.Perp(), self.market_index, None, sub))
+            fills = self.info.user_fills(self.books[book])
+            return fills[0].get("hash") if fills else None
         except Exception:
-            pass   # nothing open is fine
+            return None
 
     # -- HERMES' three verbs ---------------------------------------------------
     def open(self, book, side, qty, mark, stop, atr) -> Fill:
-        sub = self.books[book]
-        tx = self._order(sub, side, qty, reduce_only=False)
-        # exchange-side stop: reduce-only trigger market in the opposite direction
-        self._order(sub, "short" if side == "long" else "long", qty, reduce_only=True,
-                    trigger=stop, trigger_cond="below" if side == "long" else "above")
-        fee = qty * mark * self.fee_bps / 10_000
-        self._open_meta[book] = {"entry": mark, "fee": fee, "since_ts": int(time.time()),
-                                 "side": side, "qty": qty, "stop": stop}
+        ex = self.ex[book]
+        sz = self._sz(qty)
+        filled, px, oid = self._fill_of(ex.market_open(self.coin, side == "long", sz, None, 0.01))
+        if filled <= 0:
+            raise RuntimeError("market order did not fill")
+        # exchange-side stop: reduce-only trigger, opposite direction
+        trig = _px5(stop)
+        ex.order(self.coin, side != "long", filled, trig,
+                 {"trigger": {"triggerPx": trig, "isMarket": True, "tpsl": "sl"}}, reduce_only=True)
+        fee = filled * px * self.fee_bps / 10_000
+        self._open_meta[book] = {"entry": px, "fee": fee, "since_ts": int(time.time()),
+                                 "side": side, "qty": filled, "stop": stop}
         f = Fill(ts=int(time.time()), book=book, side="buy" if side == "long" else "sell",
-                 qty=qty, price=mark, fee=round(fee, 4), tx=tx, note="drift")
+                 qty=filled, price=px, fee=round(fee, 4), tx=self._last_fill_hash(book), note="hyperliquid")
         self.fills.append(f)
         return f
 
+    def _cancel_all(self, book: str):
+        try:
+            for o in self.info.open_orders(self.books[book]):
+                if o.get("coin") == self.coin:
+                    self.ex[book].cancel(self.coin, o["oid"])
+        except Exception:
+            pass
+
     def close(self, book, mark, atr, reason) -> Closed:
-        sub = self.books[book]
         p = self.position(book)
         assert p is not None, f"{book}: nothing to close"
-        self._cancel_all(sub)
-        tx = str(self._run(self.client.close_position(self.market_index, 0, sub)))
-        fee = p.qty * mark * self.fee_bps / 10_000
+        self._cancel_all(book)
+        filled, px, oid = self._fill_of(self.ex[book].market_close(self.coin, None, None, 0.01))
+        px = px or mark
+        fee = p.qty * px * self.fee_bps / 10_000
         meta = self._open_meta.pop(book, {"fee": 0.0, "since_ts": p.since_ts})
-        gross = (mark - p.entry) * p.qty * (1 if p.side == "long" else -1)
+        gross = (px - p.entry) * p.qty * (1 if p.side == "long" else -1)
         costs = meta.get("fee", 0.0) + fee
+        tx = self._last_fill_hash(book)
         c = Closed(book=book, open_ts=meta.get("since_ts", 0), close_ts=int(time.time()),
-                   side=p.side, qty=p.qty, entry=p.entry, exit=mark,
+                   side=p.side, qty=p.qty, entry=p.entry, exit=px,
                    pnl=round(gross - costs, 4), costs=round(costs, 4), reason=reason, tx=tx)
         self.fills.append(Fill(ts=c.close_ts, book=book, side="sell" if p.side == "long" else "buy",
-                               qty=p.qty, price=mark, fee=round(fee, 4), tx=tx, note="drift"))
+                               qty=p.qty, price=px, fee=round(fee, 4), tx=tx, note="hyperliquid"))
         self.closed.append(c)
         return c
 
     def flatten_all(self, mark, atr, reason) -> list[Closed]:
         out = []
         for b in self.books:
-            self._cancel_all(self.books[b])
+            self._cancel_all(b)
             if self.position(b):
                 out.append(self.close(b, mark, atr, reason))
         return out

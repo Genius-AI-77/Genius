@@ -64,10 +64,12 @@ def _reports(desk: Desk, metrics: dict) -> list[dict]:
     mode = desk.venue.mode
     out.append({"agent": "HERMES", "role": "Execution Specialist", "stance": "flat",
                 "confidence": 0.5, "status": "IMPLEMENTED",
-                "findings": [("Live venue: Drift Protocol, one sub-account per book, exchange-side stops."
+                "findings": [("Live venue: Solana spot through Jupiter, one dedicated wallet, every swap on Solscan. Long only; short reads stand aside."
+                              if mode == "live" and desk.cfg.venue == "solana" else
+                              "Live venue: Hyperliquid, one sub-account per book, exchange-side stops, agent key that cannot withdraw."
                               if mode == "live" else
-                              "Shadow venue: paper fills at the live mark with Drift's fee model. Nothing sent."),
-                             f"Taker fee {desk.venue.fee_bps:.0f} bps per side."],
+                              "Shadow venue: paper fills at the live mark with the real venue's fee model. Nothing sent."),
+                             f"Modelled cost {desk.venue.fee_bps:.0f} bps per side; live P&L uses real amounts."],
                 "data": {"mode": mode}})
     flag = metrics["trades"] >= 5 and metrics["expectancy"] < 0
     out.append({"agent": "LEDGER", "role": "Research & Audit Analyst", "stance": "flat",
@@ -112,8 +114,12 @@ def build_payload(desk: Desk) -> dict:
         "meta": {
             "source": inputs.get("candles", "unknown"), "inputs": inputs, "provenance": {},
             "instrument": cfg.instrument, "execution": desk.venue.mode,
-            "venue": f"Drift {cfg.drift_market}" if desk.venue.mode == "live" else f"shadow ({cfg.drift_market} fee model)",
-            "mode": ("LIVE: real orders on Drift Protocol" if desk.venue.mode == "live"
+            "venue": (("Solana (Jupiter spot)" if cfg.venue == "solana" else "Hyperliquid") + f" {cfg.coin}") if desk.venue.mode == "live"
+                     else f"shadow ({cfg.coin} on {'Solana' if cfg.venue == 'solana' else 'Hyperliquid'} fee model)",
+            "venue_name": "Solana" if cfg.venue == "solana" else "Hyperliquid",
+            "long_only": bool(getattr(desk.venue, "long_only", False)),
+            "mode": ("LIVE: real swaps on Solana" if desk.venue.mode == "live" and cfg.venue == "solana"
+                     else "LIVE: real orders on Hyperliquid" if desk.venue.mode == "live"
                      else "SHADOW: paper fills at the live mark, nothing sent"),
             "sessions": None, "bars_per_session": 24, "bar_seconds": cfg.bar_seconds,
             "generated_at": int(time.time()), "last_bar_ts": last_ts,

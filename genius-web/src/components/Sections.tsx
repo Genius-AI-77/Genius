@@ -361,9 +361,9 @@ function liveStats() {
 }
 
 function execLine() {
-  const D = (window as unknown as { GENIUS_DATA?: { meta?: { execution?: string } } }).GENIUS_DATA;
+  const D = (window as unknown as { GENIUS_DATA?: { meta?: { execution?: string; venue_name?: string } } }).GENIUS_DATA;
   const ex = D?.meta?.execution;
-  if (ex === "live") return "Live execution on Drift Protocol. Every fill is on-chain.";
+  if (ex === "live") return `Live execution on ${D?.meta?.venue_name ?? "the venue"}. Every fill is public on-chain.`;
   if (ex === "shadow") return "Shadow execution for now: real market, real decisions, paper fills. Real capital is next.";
   return "Paper execution for now; real capital is the next phase.";
 }

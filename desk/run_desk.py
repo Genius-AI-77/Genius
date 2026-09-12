@@ -9,8 +9,8 @@
     python3 desk/run_desk.py --probe           tiny round-trip test trade (proves the wiring)
     python3 desk/run_desk.py --once --offline  synthetic market, no network (tests/dev)
 
-Mode (shadow | live) comes from desk/config.json. Live needs DESK_WALLET_KEY in
-the secrets file; the CLI never prints it.
+Mode (shadow | live) comes from desk/config.json. Live needs DESK_AGENT_KEY and
+DESK_ACCOUNT in the secrets file; the CLI never prints them.
 """
 
 from __future__ import annotations
@@ -53,6 +53,7 @@ def main() -> int:
     g.add_argument("--kill", action="store_true")
     g.add_argument("--resume", action="store_true")
     g.add_argument("--probe", action="store_true", help="tiny round-trip test trade to prove the wiring")
+    g.add_argument("--init-cash", action="store_true", help="solana: convert wallet SOL to USDC and split across books (run once after funding)")
     ap.add_argument("--offline", action="store_true", help="synthetic market, no network")
     ap.add_argument("--no-publish", action="store_true")
     ap.add_argument("--config", default=None)
@@ -76,11 +77,17 @@ def main() -> int:
         after(desk, {"bar": "kill"}); return 0
     if args.resume:
         desk.resume(); print("resumed."); print(status(desk)); return 0
+    if args.init_cash:
+        if not hasattr(desk.venue, "init_cash"):
+            print("init-cash only applies to the solana venue in live mode"); return 1
+        r = desk.venue.init_cash(); desk.save()
+        print(json.dumps(r, indent=1)); print(status(desk)); after(desk, {"bar": "init"}); return 0
     if args.probe:
         r = desk.probe()
         print(json.dumps(r, indent=1))
         if r.get("tx_open"):
-            print(f"\nopen : https://solscan.io/tx/{r['tx_open']}\nclose: https://solscan.io/tx/{r['tx_close']}")
+            base = "https://solscan.io/tx/" if cfg.venue == "solana" else "https://app.hyperliquid.xyz/explorer/tx/"
+            print(f"\nopen : {base}{r['tx_open']}\nclose: {base}{r['tx_close']}")
         after(desk, {"bar": "probe"}); return 0 if r.get("ok") else 1
     if args.once:
         entry = desk.run_cycle()

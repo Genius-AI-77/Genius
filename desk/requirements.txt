@@ -1,3 +1,5 @@
 # Shadow mode needs nothing beyond the Python standard library.
-# Live mode (Drift Protocol) needs the SDK; Python 3.10+ on the server.
-driftpy>=0.8.80,<0.9
+# venue solana: signs Jupiter swaps (Python 3.9+).
+solders>=0.21,<1
+# venue hyperliquid (optional): official SDK.
+hyperliquid-python-sdk>=0.20,<1

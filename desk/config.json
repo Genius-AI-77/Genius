@@ -1,24 +1,44 @@
 {
   "mode": "shadow",
-  "instrument": "BTC-USD",
-  "drift_market": "BTC-PERP",
+  "instrument": "SOL-USD",
   "bar_seconds": 3600,
   "warmup_bars": 60,
   "history_bars": 200,
   "max_holding_bars": 24,
   "order_step": 0.0001,
-  "min_order": 0.0001,
+  "min_order": 0.01,
   "limits": "PILOT_100",
   "starting_cash_per_book": 33.33,
   "books": [
-    { "name": "ATLAS",  "analyst": "fundamental", "sub_account": 0 },
-    { "name": "EUCLID", "analyst": "technical",   "sub_account": 1 },
-    { "name": "FLUX",   "analyst": "orderflow",   "sub_account": 2 }
+    {
+      "name": "ATLAS",
+      "analyst": "fundamental",
+      "sub_account": 0
+    },
+    {
+      "name": "EUCLID",
+      "analyst": "technical",
+      "sub_account": 1
+    },
+    {
+      "name": "FLUX",
+      "analyst": "orderflow",
+      "sub_account": 2
+    }
   ],
   "publish": {
-    "targets": ["site/console/data.js", "genius-web/public/console/data.js"],
+    "targets": [
+      "site/console/data.js",
+      "genius-web/public/console/data.js"
+    ],
     "git_push": false,
     "git_branch": "main"
   },
-  "rpc_url": "https://api.mainnet-beta.solana.com"
+  "coin": "SOL",
+  "hl_books": {
+    "ATLAS": "",
+    "EUCLID": "",
+    "FLUX": ""
+  },
+  "venue": "solana"
 }

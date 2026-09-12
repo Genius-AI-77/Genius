@@ -110,7 +110,7 @@
   document.querySelector('#trades tbody').innerHTML=
     D.closed_trades.slice().reverse().map(function(t){
       var tag = (t.book ? '<span style="color:var(--ink-3)">'+t.book+' </span>' : '') + t.side +
-                (t.tx ? ' <a href="https://solscan.io/tx/'+encodeURIComponent(t.tx)+'" target="_blank" rel="noopener noreferrer" style="color:var(--cyan)">tx</a>' : '');
+                (t.tx ? ' <a href="'+((D.meta.venue_name||'')==='Hyperliquid'?'https://app.hyperliquid.xyz/explorer/tx/':'https://solscan.io/tx/')+encodeURIComponent(t.tx)+'" target="_blank" rel="noopener noreferrer" style="color:var(--cyan)">tx</a>' : '');
       return '<tr><td>'+tag+'</td><td class="num">'+t.qty+'</td><td class="num">'+
         money(t.entry)+'</td><td class="num">'+money(t.exit)+'</td><td class="num '+
         (t.pnl>=0?'up':'down')+'">'+money(t.pnl)+'</td><td class="num">'+money(t.costs)+
