@@ -73,6 +73,28 @@ def main() -> None:
 
     sessions_run = (len(candles) - WARMUP) // BARS_PER_SESSION
     real = [k for k, v in inputs.items() if v.startswith("live")]
+
+    # open position + session state, for the live desk view
+    b = lab.broker
+    last = candles[-1]
+    position = None
+    if b.position_qty != 0:
+        side = "long" if b.position_qty > 0 else "short"
+        unreal = b.position_qty * (last.close - b.entry_price)
+        position = {"side": side, "qty": round(abs(b.position_qty), 6),
+                    "entry": round(b.entry_price, 2), "mark": round(last.close, 2),
+                    "unrealized": round(unreal, 2), "stop": lab._stop,
+                    "since_ts": b.entry_ts,
+                    "bars_held": len(candles) - 1 - lab._entry_bar}
+    cycles = [e for e in lab.journal.entries if e["type"] == "cycle"]
+    session = cycles[-(len(cycles) % BARS_PER_SESSION or BARS_PER_SESSION):]
+    session_start_eq = next((pt["equity"] for pt in lab.journal.equity_curve
+                             if pt["ts"] == session[0]["ts"]), b.equity)
+    last_decision = cycles[-1] if cycles else None
+    fills_last_cycle = [e for e in lab.journal.entries
+                        if e["type"] == "trade_closed" and e["ts"] == last.ts]
+    entered_last_cycle = bool(last_decision and last_decision["decision"] == "ENTERED")
+
     payload = {
         "meta": {
             "source": inputs["candles"],
@@ -83,11 +105,28 @@ def main() -> None:
             "sessions": sessions_run,
             "bars_per_session": BARS_PER_SESSION,
             "generated_at": int(t0),
+            "execution": "paper",           # paper | shadow | live
+            "venue": "BTC-USD",
+            "bar_seconds": 3600,
+            "last_bar_ts": last.ts,
+            "next_cycle_ts": last.ts + 2 * 3600,
             "generated_note": ("All performance is after simulated fees and slippage. "
                                + (f"Real inputs: {', '.join(real)}." if real
                                   else "All inputs synthetic.")),
         },
         "metrics": metrics,
+        "desk": {
+            "equity": round(b.equity, 2),
+            "session_pnl": round(b.equity - session_start_eq, 2),
+            "position": position,
+            "last_decision": ({"decision": last_decision["decision"],
+                               "detail": last_decision["detail"],
+                               "ts": last_decision["ts"]} if last_decision else None),
+            "fill_last_cycle": bool(fills_last_cycle) or entered_last_cycle,
+            "stances": {r["agent"]: r["stance"] for r in lab.last_reports},
+            "lines": {r["agent"]: (r["findings"][0] if r["findings"] else "")
+                      for r in lab.last_reports},
+        },
         "equity_curve": lab.journal.equity_curve,
         "reports": lab.last_reports,
         "journal_tail": [e for e in lab.journal.entries if e["type"] == "cycle"][-60:],

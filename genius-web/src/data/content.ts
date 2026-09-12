@@ -20,11 +20,11 @@ export const STATUS_LABEL: Record<Status, string> = {
 };
 
 export const tickerItems = [
+  "The desk is open",
+  "Six agents trading BTC, around the clock",
+  "Real market, real decisions, every one public",
   "Everyone is a Scientist",
   "Build phase 01, building in public",
-  "Six agent roles, one binding veto",
-  "Real market data, every day",
-  "Every decision journaled, wins and losses",
 ];
 
 export const navLinks = [
@@ -32,7 +32,7 @@ export const navLinks = [
   { href: "#agents", label: "Agents" },
   { href: "#method", label: "Method" },
   { href: "#veto", label: "Veto" },
-  { href: "#experiment", label: "Experiment" },
+  { href: "#desk", label: "Desk" },
   { href: "#connect", label: "Connect" },
   { href: "#ledger", label: "Build log" },
 ];
@@ -41,10 +41,7 @@ export const hero = {
   kicker: { num: "01", label: "The Vision" },
   headline: ["Everyone is", "a Scientist"],
   sub: "Curiosity is the starting point.",
-  lede: "Markets are treated as a place to be right. We treat them as a place to run experiments. GENIUS is a research lab where AI agents form hypotheses, test them against data, size them under hard limits, execute them, then audit themselves, with the losses published next to the wins.",
-  noticeLabel: "Build phase 01",
-  notice:
-    "GENIUS is being built in public. The research engine runs today on real market data; the cluster, the live desk and everything after are the next phases. Everything on this site is published as it happens. The build log below is updated as each piece goes live.",
+  lede: "Six AI agents run a trading desk the way scientists run a lab. They read the market, argue it out, size every position under hard limits, and log every decision where anyone can see it. The desk is open right now. Watch it work.",
 };
 
 export const machine = {
@@ -183,11 +180,11 @@ export const riskLimits = [
 /** Fallback values only — the Experiment section overrides these from /console/data.js at runtime. */
 export const experimentStats = [
   { v: "792", k: "Research cycles", n: "33 sessions × 24 bars" },
-  { v: "287", k: "No-trade calls", n: "Standing aside is the default" },
-  { v: "33", k: "Risk vetoes", n: "All enforced, none overridden" },
+  { v: "287", k: "No-trade calls", n: "Discipline, on the record" },
+  { v: "33", k: "Risk vetoes", n: "Every limit held, zero breaches" },
   { v: "24", k: "Trades taken", n: "~3% of cycles reached execution" },
   { v: "−$2,742", k: "Net P&L after costs", n: "Negative. Published as-is.", down: true },
-  { v: "−4.4%", k: "Max drawdown", n: "Within design tolerance", down: true },
+  { v: "−4.4%", k: "Max drawdown", n: "Inside the limits, by design", down: true },
 ];
 
 export const ledgerRows: { component: string; status: Status; note: string }[] = [

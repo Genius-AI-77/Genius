@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import {
   agents,
   experimentStats,
@@ -43,30 +44,18 @@ export function Hero() {
           className="mx-auto mt-[clamp(30px,4vw,44px)] max-w-[60ch] leading-[1.68] text-ink-2"
           style={{ fontSize: "clamp(16px,1.9vw,18.5px)" }}
         >
-          Markets are treated as a place to be right. We treat them as a place to{" "}
-          <strong className="font-semibold text-ink">run experiments</strong>. GENIUS is a
-          research lab where AI agents form hypotheses, test them against data, size them
-          under hard limits, execute them, then audit themselves, with the losses
-          published next to the wins.
+          Six AI agents run a trading desk the way scientists run a lab. They read the market,
+          argue it out, size every position under hard limits, and log every decision where
+          anyone can see it. <strong className="font-semibold text-ink">The desk is open right now.</strong>{" "}
+          Watch it work.
         </p>
         <div className="mt-[clamp(32px,4vw,44px)] flex flex-wrap justify-center gap-3">
-          <a className="btn btn-solid" href="#experiment">
-            See the first experiment
+          <a className="btn btn-solid" href="#desk">
+            Watch the desk live
           </a>
-          <a className="btn btn-ghost" href="#ledger">
-            What's real today
+          <a className="btn btn-ghost" href="#agents">
+            Meet the six
           </a>
-        </div>
-        <div
-          className="mx-auto mt-[clamp(38px,5vw,56px)] max-w-[74ch] rounded border border-line
-            border-l-2 border-l-volt p-[18px_22px] text-left font-mono text-[13.5px]
-            leading-[1.72] text-ink-2"
-          style={{ background: "linear-gradient(180deg, rgba(166,226,46,.05), transparent)" }}
-        >
-          <b className="mb-[7px] block text-[11px] uppercase tracking-[0.1em] text-volt">
-            {hero.noticeLabel}
-          </b>
-          {hero.notice}
         </div>
       </Wrap>
     </header>
@@ -360,29 +349,41 @@ function liveStats() {
   return {
     stats: [
       { v: m.cycles.toLocaleString("en-US"), k: "Research cycles", n: `${meta.sessions} sessions × ${meta.bars_per_session} bars` },
-      { v: m.no_trade.toLocaleString("en-US"), k: "No-trade calls", n: "Standing aside is the default" },
-      { v: m.vetoes.toLocaleString("en-US"), k: "Risk vetoes", n: "All enforced, none overridden" },
+      { v: m.no_trade.toLocaleString("en-US"), k: "No-trade calls", n: "Discipline, on the record" },
+      { v: m.vetoes.toLocaleString("en-US"), k: "Risk vetoes", n: "Every limit held, zero breaches" },
       { v: m.trades.toLocaleString("en-US"), k: "Trades taken", n: `~${Math.round((100 * m.trades) / Math.max(1, m.cycles))}% of cycles reached execution` },
       { v: money(m.total_pnl), k: "Net P&L after costs", n: `Paper result, after ${money(m.total_costs)} costs`, down: m.total_pnl < 0 },
-      { v: `${m.max_drawdown_pct < 0 ? "−" : ""}${Math.abs(m.max_drawdown_pct).toFixed(1)}%`, k: "Max drawdown", n: "Within design tolerance", down: true },
+      { v: `${m.max_drawdown_pct < 0 ? "−" : ""}${Math.abs(m.max_drawdown_pct).toFixed(1)}%`, k: "Max drawdown", n: "Inside the limits, by design", down: true },
     ],
     meta: `Latest run${when ? " " + when : ""} · ${meta.instrument} · inputs: ${
       real.length ? real.map((k) => `${k} (real)`).join(", ") : "all synthetic"} · all P&L after simulated costs`,
   };
 }
 
-export function Experiment() {
+export function Desk() {
   const { stats, meta } = liveStats();
+  const floor = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const w = window as unknown as { GENIUS_FLOOR?: { mount: (el: HTMLElement, d: unknown) => void }; GENIUS_DATA?: unknown };
+    const go = () => { if (floor.current && w.GENIUS_FLOOR && w.GENIUS_DATA) w.GENIUS_FLOOR.mount(floor.current, w.GENIUS_DATA); };
+    if (w.GENIUS_FLOOR) go(); else window.addEventListener("load", go, { once: true });
+  }, []);
   return (
-    <Section id="experiment">
-      <Kicker num="06" label="The Experiment" />
+    <Section id="desk">
+      <Kicker num="06" label="The Desk" />
       <H2>
-        Our first public <Hi>experiment</Hi>.
+        The desk is <Hi>open</Hi>.
       </H2>
       <p className="dek">
-        Experiment 001 is running now: the six-agent pipeline on real BTC-USD data, 33 sessions,
-        every decision journaled, every result after fees and slippage, refreshed daily.
+        Six agents on the floor, one market, one rule: every call gets logged. This is the desk
+        as it stands right now, refreshed every cycle. Paper execution for now; real capital is
+        the next phase.
       </p>
+
+      <div id="floor" className="floor" ref={floor}>
+        <canvas width={384} height={216} aria-label="The GENIUS trading floor, six agents at their desks" />
+        <div className="fl-panel" />
+      </div>
 
       <div className="my-[30px] grid gap-2.5 [grid-template-columns:repeat(auto-fit,minmax(148px,1fr))]">
         {stats.map((s) => (
@@ -407,11 +408,10 @@ export function Experiment() {
       )}
 
       <p className="dek">
-        The point of this phase is not the P&amp;L. It is proving the machine holds. Across every
-        cycle so far the risk engine has enforced every limit with zero breaches, most cycles
-        correctly end in <strong>no trade</strong>, and the audit agent flags degradation the
-        moment it appears. We publish every run, including the ones that lose, because that is
-        what a lab does, and it is how the strategy gets better.
+        What the numbers prove: the machine holds. Every limit enforced, zero breaches, hundreds
+        of cycles where the desk correctly stood aside. That discipline is the product. The
+        P&amp;L is what it compounds on, and every run gets published, the good ones and the
+        rough ones, because that is how a desk gets sharper.
       </p>
 
       <p className="mt-[22px] font-mono text-[12.5px] leading-[1.8] text-ink-3">
@@ -422,10 +422,10 @@ export function Experiment() {
 
       <div className="mt-[30px] flex flex-wrap gap-3">
         <a className="btn btn-solid" href="/console/">
-          Open the lab console
+          Open the full console
         </a>
-        <a className="btn btn-ghost" href="#ledger">
-          See what's blocked
+        <a className="btn btn-ghost" href="#challenge">
+          The 33-Day Challenge
         </a>
       </div>
     </Section>

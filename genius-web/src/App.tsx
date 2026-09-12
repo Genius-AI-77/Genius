@@ -2,7 +2,7 @@ import { Nav, Stage, Ticker } from "./components/Chrome";
 import {
   Agents,
   Challenge,
-  Experiment,
+  Desk,
   Hero,
   Machine,
   Method,
@@ -22,7 +22,7 @@ export default function App() {
       <Agents />
       <Method />
       <Veto />
-      <Experiment />
+      <Desk />
       <Connect />
       <Challenge />
       <Ledger />

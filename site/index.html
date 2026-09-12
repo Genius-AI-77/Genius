@@ -261,6 +261,42 @@ pre.code{background:#000;border:1px solid var(--line);border-radius:8px;padding:
          font:400 12.5px/1.8 var(--mono);color:#c3ccc7;overflow-x:auto;white-space:pre}
 .code .c{color:#4e5c53}.code .k{color:var(--volt)}.code .s{color:var(--cyan)}.code .r{color:var(--red)}
 
+/* ---------- the floor ---------- */
+.floor{display:grid;grid-template-columns:1fr;gap:12px;margin:36px 0 14px}
+@media(min-width:960px){.floor{grid-template-columns:1.45fr 1fr}}
+.floor canvas{width:100%;height:auto;aspect-ratio:16/9;display:block;border:1px solid var(--line-2);
+  border-radius:8px;image-rendering:pixelated;image-rendering:crisp-edges;background:#0c1013;
+  box-shadow:0 30px 60px -30px rgba(0,0,0,.9),0 0 0 1px rgba(166,226,46,.06),0 0 60px -30px var(--volt-glow)}
+.fl-panel{border:1px solid var(--line);border-radius:8px;padding:16px 18px;
+  background:linear-gradient(160deg,var(--panel-2),var(--panel) 55%,#0a0d0f);font:400 13px/1.55 var(--disp)}
+.fl-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.fl-badge{font:600 9.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:3px 8px;border-radius:3px;border:1px solid}
+.fl-market{color:var(--volt);border-color:rgba(166,226,46,.4);background:rgba(166,226,46,.09)}
+.fl-paper{color:var(--amber);border-color:rgba(240,165,60,.4);background:rgba(240,165,60,.09)}
+.fl-shadow{color:var(--cyan);border-color:rgba(53,214,232,.4);background:rgba(53,214,232,.09)}
+.fl-live{color:var(--volt);border-color:var(--volt);background:rgba(166,226,46,.15);box-shadow:0 0 14px -4px var(--volt-glow)}
+.fl-when{margin-left:auto;font:400 11px var(--mono);color:var(--ink-3)}
+.fl-nums{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 0 10px}
+.fl-nums span{display:block;font:500 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.fl-nums b{display:block;font:800 22px/1.1 var(--disp);letter-spacing:-.03em;color:var(--ink);margin-top:4px}
+.fl-up{color:var(--volt)!important}.fl-down{color:var(--red)!important}
+.fl-pos{border:1px solid var(--line-2);border-radius:6px;padding:10px 12px;background:#0b0f11;font:400 12.5px var(--mono)}
+.fl-pos.fl-flat{color:var(--ink-3)}
+.fl-pos-h{color:var(--ink);margin-bottom:6px}.fl-pos-h b{font-weight:700}
+.fl-pos-r{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:3px 10px;font-size:11.5px}
+.fl-pos-r span{color:var(--ink-3)}.fl-pos-r b{font-weight:500;color:var(--ink-2)}
+.fl-dec{margin:10px 0 4px;font:400 11.5px/1.5 var(--mono);color:var(--ink-3)}
+.fl-dec span{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase}
+.fl-dec b{font-weight:600;color:var(--ink)}.fl-dec i{font-style:normal;color:var(--ink-2)}
+.fl-ENTERED{color:var(--cyan)!important}.fl-VETOED{color:var(--red)!important}.fl-HOLDING{color:var(--volt)!important}
+.fl-agents{list-style:none;margin:10px 0 0;padding:10px 0 0;border-top:1px solid var(--line);display:grid;gap:7px}
+.fl-agents li{display:grid;grid-template-columns:58px 1fr auto;gap:2px 8px;align-items:baseline;font:400 11.5px var(--mono)}
+.fl-agents b{color:var(--ink);font-weight:700;font-family:var(--disp);font-size:12.5px}
+.fl-role{color:var(--ink-3)}
+.fl-st{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;padding:2px 6px;border-radius:3px;border:1px solid var(--line-2);color:var(--ink-3)}
+.fl-st-long{color:var(--volt);border-color:rgba(166,226,46,.4)}.fl-st-short{color:var(--red);border-color:rgba(255,90,90,.4)}.fl-st-on{color:var(--cyan);border-color:rgba(53,214,232,.35)}
+.fl-agents p{grid-column:1/-1;color:var(--ink-3);font-size:11px;line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+
 /* ---------- pills ---------- */
 .pill{display:inline-block;font:600 9.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;
       padding:3px 8px;border-radius:3px;border:1px solid;vertical-align:1px;white-space:nowrap}
@@ -272,7 +308,7 @@ pre.code{background:#000;border:1px solid var(--line);border-radius:8px;padding:
 /* ---------- stats ---------- */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin:30px 0}
 .stat{padding:18px 16px}
-.stat .v{font:800 clamp(24px,3.4vw,34px)/1 var(--disp);letter-spacing:-.03em;color:var(--ink)}
+.stat .v{font:800 clamp(20px,2.6vw,32px)/1 var(--disp);letter-spacing:-.03em;color:var(--ink);white-space:nowrap}
 .stat .v.up{color:var(--volt)} .stat .v.down{color:var(--red)}
 .stat .k{font:500 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;
          color:var(--ink-3);margin-top:9px}
@@ -355,7 +391,7 @@ footer a:hover{color:var(--volt)}
   <a class="logo" href="#top"><svg><use href="#gmark"/></svg><span>GENIUS</span></a>
   <nav>
     <a href="#machine">Machine</a><a href="#agents">Agents</a><a href="#method">Method</a>
-    <a href="#veto">Veto</a><a href="#experiment">Experiment</a><a href="#connect">Connect</a>
+    <a href="#veto">Veto</a><a href="#desk">Desk</a><a href="#connect">Connect</a>
     <a href="#ledger">Build log</a>
   </nav>
   <button id="wallet-btn" class="wbtn" type="button">Connect wallet</button>
@@ -363,12 +399,12 @@ footer a:hover{color:var(--volt)}
 </div></div>
 
 <div class="ticker"><div class="run">
-  <s><i>◆</i>Everyone is a Scientist</s><s><i>◆</i>Build phase 01, building in public</s>
-  <s><i>◆</i>Six agent roles, one binding veto</s><s><i>◆</i>Real market data, every day</s>
-  <s><i>◆</i>Every decision journaled, wins and losses</s>
-  <s><i>◆</i>Everyone is a Scientist</s><s><i>◆</i>Build phase 01, building in public</s>
-  <s><i>◆</i>Six agent roles, one binding veto</s><s><i>◆</i>Real market data, every day</s>
-  <s><i>◆</i>Every decision journaled, wins and losses</s>
+  <s><i>◆</i>The desk is open</s><s><i>◆</i>Six agents trading BTC, around the clock</s>
+  <s><i>◆</i>Real market, real decisions, every one public</s><s><i>◆</i>Everyone is a Scientist</s>
+  <s><i>◆</i>Build phase 01, building in public</s>
+  <s><i>◆</i>The desk is open</s><s><i>◆</i>Six agents trading BTC, around the clock</s>
+  <s><i>◆</i>Real market, real decisions, every one public</s><s><i>◆</i>Everyone is a Scientist</s>
+  <s><i>◆</i>Build phase 01, building in public</s>
 </div></div>
 
 <!-- 01 -->
@@ -377,18 +413,13 @@ footer a:hover{color:var(--volt)}
   <div class="hero-mark"><svg viewBox="0 0 40 44"><use href="#gmark"/></svg></div>
   <h1>Everyone is<br>a Scientist<span class="dot">.</span></h1>
   <p class="sub">Curiosity is the starting point.</p>
-  <p class="lede">Markets are treated as a place to be right. We treat them as a place to
-    <strong>run experiments</strong>. GENIUS is a research lab where AI agents form hypotheses,
-    test them against data, size them under hard limits, execute them, then audit
-    themselves, with the losses published next to the wins.</p>
+  <p class="lede">Six AI agents run a trading desk the way scientists run a lab. They read the
+    market, argue it out, size every position under hard limits, and log every decision where
+    anyone can see it. <strong>The desk is open right now.</strong> Watch it work.</p>
   <div class="cta">
-    <a class="btn solid" href="#experiment">See the first experiment</a>
-    <a class="btn ghost" href="#ledger">What's real today</a>
+    <a class="btn solid" href="#desk">Watch the desk live</a>
+    <a class="btn ghost" href="#agents">Meet the six</a>
   </div>
-  <div class="notice"><b>Build phase 01</b>
-    GENIUS is being built in public. The research engine runs today on real market data; the
-    cluster, the live desk and everything after are the next phases. Everything on this site is
-    published as it happens. The build log below is updated as each piece goes live.</div>
 </div></header>
 
 <!-- 02 -->
@@ -580,35 +611,37 @@ footer a:hover{color:var(--volt)}
 </div></section>
 
 <!-- 06 -->
-<section id="experiment"><div class="wrap">
-  <div class="kicker"><b>06</b> / The Experiment</div>
-  <h2>Our first public <em>experiment</em>.</h2>
-  <p class="dek">Experiment 001 is running now: the six-agent pipeline on real BTC-USD data, 33
-    sessions, every decision journaled, every result after fees and slippage, refreshed daily.</p>
+<section id="desk"><div class="wrap">
+  <div class="kicker"><b>06</b> / The Desk</div>
+  <h2>The desk is <em>open</em>.</h2>
+  <p class="dek">Six agents on the floor, one market, one rule: every call gets logged. This is
+    the desk as it stands right now, refreshed every cycle. Paper execution for now; real capital
+    is the next phase.</p>
+
+  <div id="floor" class="floor">
+    <canvas width="384" height="216" aria-label="The GENIUS trading floor, six agents at their desks"></canvas>
+    <div class="fl-panel"></div>
+  </div>
 
   <div class="stats">
     <div class="mod stat"><div class="v" data-stat="cycles">792</div><div class="k">Research cycles</div><div class="n" data-note="sessions">33 sessions × 24 bars</div></div>
-    <div class="mod stat"><div class="v" data-stat="no_trade">287</div><div class="k">No-trade calls</div><div class="n">Standing aside is the default</div></div>
-    <div class="mod stat"><div class="v" data-stat="vetoes">33</div><div class="k">Risk vetoes</div><div class="n">All enforced, none overridden</div></div>
+    <div class="mod stat"><div class="v" data-stat="no_trade">287</div><div class="k">No-trade calls</div><div class="n">Discipline, on the record</div></div>
+    <div class="mod stat"><div class="v" data-stat="vetoes">33</div><div class="k">Risk vetoes</div><div class="n">Every limit held, zero breaches</div></div>
     <div class="mod stat"><div class="v" data-stat="trades">24</div><div class="k">Trades taken</div><div class="n" data-note="trade_pct">~3% of cycles reached execution</div></div>
     <div class="mod stat"><div class="v down" data-stat="pnl">−$2,742</div><div class="k">Net P&amp;L after costs</div><div class="n" data-note="pnl">Paper result, after costs</div></div>
-    <div class="mod stat"><div class="v down" data-stat="dd">−4.4%</div><div class="k">Max drawdown</div><div class="n">Within design tolerance</div></div>
+    <div class="mod stat"><div class="v down" data-stat="dd">−4.4%</div><div class="k">Max drawdown</div><div class="n">Inside the limits, by design</div></div>
   </div>
 
   <p id="run-meta" class="dek" style="margin-top:0;font:400 12.5px/1.8 var(--mono);color:var(--ink-3)"></p>
 
-  <p class="dek">The point of this phase is not the P&amp;L. It is proving the machine holds. Across
-    every cycle so far the risk engine has enforced every limit with zero breaches, most cycles
-    correctly end in <strong>no trade</strong>, and the audit agent flags degradation the moment it
-    appears. We publish every run, including the ones that lose, because that is what a lab does, and it is how the strategy gets better.</p>
-
-  <p style="margin-top:22px;font:400 12.5px/1.8 var(--mono);color:var(--ink-3)">
-    <span class="pill p-sim">Paper</span> Real market data, paper execution with fees and
-    slippage charged. Research, not a forecast or a track record. Run it yourself: <code style="color:var(--volt)">python3 lab/run_demo.py</code></p>
+  <p class="dek">What the numbers prove: the machine holds. Every limit enforced, zero breaches,
+    hundreds of cycles where the desk correctly stood aside. That discipline is the product. The
+    P&amp;L is what it compounds on, and every run gets published, the good ones and the rough ones,
+    because that is how a desk gets sharper.</p>
 
   <div class="cta" style="justify-content:flex-start;margin-top:30px">
-    <a class="btn solid" href="console/">Open the lab console</a>
-    <a class="btn ghost" href="#ledger">See what's blocked</a>
+    <a class="btn solid" href="console/">Open the full console</a>
+    <a class="btn ghost" href="#challenge">The 33-Day Challenge</a>
   </div>
 </div></section>
 
@@ -694,7 +727,7 @@ footer a:hover{color:var(--volt)}
     </div>
     <div><h6>The lab</h6><ul>
       <li><a href="#machine">The machine</a></li><li><a href="#agents">Six agents</a></li>
-      <li><a href="#veto">The veto</a></li><li><a href="#experiment">First experiment</a></li>
+      <li><a href="#veto">The veto</a></li><li><a href="#desk">The desk</a></li>
       <li><a href="console/">Lab console</a></li>
     </ul></div>
     <div><h6>Build log key</h6><ul>
@@ -709,5 +742,6 @@ footer a:hover{color:var(--volt)}
 <script src="console/data.js"></script>
 <script src="app.js" defer></script>
 <script src="wallet.js" defer></script>
+<script src="floor.js" defer></script>
 </body>
 </html>
