@@ -1,0 +1,50 @@
+name: Daily lab run
+
+on:
+  schedule:
+    - cron: "15 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-run
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run tests
+        run: python3 -m unittest discover -s lab/tests -t lab
+
+      - name: Run the lab on live data
+        run: python3 lab/run_demo.py --live
+
+      - name: Archive recorded tape / book / headlines
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab-data-${{ github.run_id }}
+          path: lab/data/
+          retention-days: 90
+          if-no-files-found: warn
+
+      - name: Commit refreshed console data
+        run: |
+          git config user.name  "genius-lab[bot]"
+          git config user.email "genius-lab[bot]@users.noreply.github.com"
+          git add site/console/data.js genius-web/public/console/data.js 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "no change"
+          else
+            git commit -m "lab: daily run $(date -u +%Y-%m-%d)"
+            git push
+          fi
