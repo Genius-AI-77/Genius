@@ -1,0 +1,16 @@
+node_modules/
+dist/
+dist-ssr/
+lab/output/
+lab/data/
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+.vscode/
+.idea/
+.claude/
+*.local
+.env
+.env.*
+!.env.example
