@@ -54,6 +54,7 @@ SEL = {
     "getPool": "0x1698ee82", "slot0": "0x3850c7bd", "tokenPaused": "0x86c75e74", "paused": "0x5c975abb",
     "quoteExactInputSingle": "0xc6a5026a",   # QuoterV2 ((address,address,uint256,uint24,uint160))
     "exactInputSingle": "0x04e45aaf",        # SwapRouter02 ((address,address,uint24,address,uint256,uint256,uint160))
+    "deposit": "0xd0e30db0",                 # WETH9.deposit(): wrap native ETH
 }
 
 
@@ -264,16 +265,29 @@ class UniswapVenue(Venue):
         return [self.close(n, mark, atr, reason) for n in self.book_names if self.b[n]["sol"] > 0]
 
     # -- setup + safety ----------------------------------------------------------
+    def wrap_spare_eth(self) -> str | None:
+        """Fees arrive as native ETH. Keep the gas reserve, wrap the rest into WETH
+        so it can be swapped like any token."""
+        spare = self.eth_balance() - ETH_GAS_RESERVE
+        if spare < 0.0005:                       # about a dollar; below that it is gas money
+            return None
+        weth = TOKENS["WETH"][0]
+        return self._send(weth, SEL["deposit"], value=int(spare * 1e18))
+
     def init_cash(self) -> dict:
-        """After fees have landed: sell whatever the fees arrived in (the fee token,
-        or the asset) for USDG, keep the ETH gas reserve, split USDG equally
-        across the books. Run it again whenever new fees arrive."""
+        """After fees have landed: wrap spare ETH, sell whatever the fees arrived in
+        (WETH, the fee token, or the asset) for USDG, keep the ETH gas reserve,
+        split USDG equally across the books. Run it again whenever new fees arrive."""
         txs = []
-        if self.fee_token and self.fee_token in TOKENS and self.fee_token not in ("USDG", self.asset_sym):
-            addr, dec = TOKENS[self.fee_token]
+        w = self.wrap_spare_eth()
+        if w:
+            txs.append(w)
+        fee_sym = self.fee_token or "WETH"
+        if fee_sym in TOKENS and fee_sym not in ("USDG", self.asset_sym):
+            addr, dec = TOKENS[fee_sym]
             bal = self._erc20_balance(addr, dec)
             if bal > 0:
-                for fee in (self.pool_fee, 3000, 10000, 100):
+                for fee in (100, 500, 3000, 10000):
                     try:
                         h, _, _ = self._swap(addr, self.cash, int(bal * 10 ** dec), fee)
                         txs.append(h); break

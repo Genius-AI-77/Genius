@@ -43,5 +43,5 @@
   "venue": "uniswap",
   "asset": "WETH",
   "pool_fee": 500,
-  "fee_token": ""
+  "fee_token": "WETH"
 }
