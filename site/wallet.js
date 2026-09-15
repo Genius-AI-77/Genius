@@ -163,7 +163,7 @@
       a.onChange(function () { disconnect(true); });
       render();
       var T = window.GENIUS_TOKEN;
-      if (T && T.ca) fetchTokenBalance(r.address, T.ca).then(function (b) { state.token = b; render(); });
+      if (T && T.ca && T.chain === 'solana') fetchTokenBalance(r.address, T.ca).then(function (b) { state.token = b; render(); });
       return fetchBalance(r.address).then(function (b) { state.balance = b; render(); });
     }).catch(function (e) {
       if (!silent) state.error = (e && e.message) || 'Connection rejected';
@@ -216,7 +216,7 @@
       h += '<div class="wp-row"><span>SOL balance</span><b>' +
            (state.balance === null ? '…' : esc(state.balance.toFixed(4)) + ' SOL') + '</b></div>';
       var T2 = window.GENIUS_TOKEN;
-      if (T2 && T2.ca) h += '<div class="wp-row"><span>' + esc(T2.ticker || '$GENIUS') + '</span><b>' +
+      if (T2 && T2.ca && T2.chain === 'solana') h += '<div class="wp-row"><span>GENIUS</span><b>' +
            (state.token === undefined ? '\u2026' : state.token === null ? '<span class="wp-dim">unavailable</span>' :
             esc(Number(state.token).toLocaleString('en-US', { maximumFractionDigits: 2 }))) + '</b></div>';
       h += '<div class="wp-row"><span>Ownership</span><b>' +

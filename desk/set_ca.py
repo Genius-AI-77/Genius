@@ -1,30 +1,22 @@
 #!/usr/bin/env python3
-"""Publish the $GENIUS contract address to the site.
+"""Publish the GENIUS contract address to the site.
 
-    python3 desk/set_ca.py <MINT_ADDRESS>          validate on chain, write, commit, push
-    python3 desk/set_ca.py <MINT_ADDRESS> --dry    validate + write only, no git
+    python3 desk/set_ca.py <CONTRACT_ADDRESS>     validate on chain, write, commit, push
+    python3 desk/set_ca.py <CONTRACT_ADDRESS> --dry   validate + write only, no git
     python3 desk/set_ca.py --clear                 blank it again
 
-Validation: the address must decode as a 32-byte base58 key AND exist on
-mainnet as an SPL token mint (owner = Token or Token-2022 program). A typo,
-a wallet address or a mint that is not on chain is refused; nothing is written.
+Validation: the address must be a 0x address AND be a deployed contract on
+Robinhood Chain (chain id 4663) that answers symbol(), decimals() and
+totalSupply() like an ERC-20. A typo, a wallet address, a contract on another
+chain, or a non-token contract is refused; nothing is written.
 """
 import json, os, re, ssl, subprocess, sys, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FILES = ["site/ca.js", "genius-web/public/ca.js"]
-RPC = os.environ.get("DESK_RPC_URL", "https://api.mainnet-beta.solana.com")
-TOKEN = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-TOKEN_2022 = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnwqTfR3jsNPGA"
-B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-
-
-def b58_len(s):
-    n = 0
-    for c in s:
-        n = n * 58 + B58.index(c)
-    raw = n.to_bytes((n.bit_length() + 7) // 8, "big")
-    return len(raw) + (len(s) - len(s.lstrip("1")))
+RPC = os.environ.get("GENIUS_CHAIN_RPC", "https://rpc.mainnet.chain.robinhood.com")
+CHAIN_ID = 4663
+SELECTORS = {"symbol": "0x95d89b41", "decimals": "0x313ce567", "totalSupply": "0x18160ddd", "name": "0x06fdde03"}
 
 
 def _ssl_ctx():
@@ -40,20 +32,39 @@ def _ssl_ctx():
         return ssl.create_default_context()
 
 
-def on_chain_mint(addr):
-    body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "getAccountInfo",
-                       "params": [addr, {"encoding": "jsonParsed"}]}).encode()
-    req = urllib.request.Request(RPC, body, {"Content-Type": "application/json"})
+def rpc(method, params):
+    body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": method, "params": params}).encode()
+    req = urllib.request.Request(RPC, body, {"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"})
     r = json.load(urllib.request.urlopen(req, timeout=15, context=_ssl_ctx()))
-    v = (r.get("result") or {}).get("value")
-    if not v:
-        return None, "no account at that address on mainnet"
-    if v["owner"] not in (TOKEN, TOKEN_2022):
-        return None, f"account exists but is not an SPL token (owner {v['owner'][:8]}...)"
-    parsed = v.get("data", {}).get("parsed", {})
-    if parsed.get("type") != "mint":
-        return None, f"token account but not a mint (type {parsed.get('type')})"
-    return parsed.get("info", {}), None
+    if "error" in r:
+        raise RuntimeError(r["error"])
+    return r["result"]
+
+
+def _abi_string(hexdata):
+    raw = bytes.fromhex(hexdata[2:])
+    if len(raw) >= 64:                      # dynamic string: offset, length, bytes
+        n = int.from_bytes(raw[32:64], "big")
+        return raw[64:64 + n].decode("utf-8", "replace")
+    return raw.rstrip(b"\0").decode("utf-8", "replace")   # bytes32 style
+
+
+def on_chain_token(addr):
+    if int(rpc("eth_chainId", []), 16) != CHAIN_ID:
+        return None, f"RPC is not Robinhood Chain (expected chain id {CHAIN_ID})"
+    code = rpc("eth_getCode", [addr, "latest"])
+    if code in ("0x", "0x0", None):
+        return None, "no contract at that address on Robinhood Chain (a wallet, a typo, or another chain)"
+    info = {}
+    for name, sel in SELECTORS.items():
+        try:
+            out = rpc("eth_call", [{"to": addr, "data": sel}, "latest"])
+        except Exception as e:
+            return None, f"contract does not answer {name}(): {e}"
+        if out in ("0x", None):
+            return None, f"contract does not answer {name}(), so it is not an ERC-20 token"
+        info[name] = _abi_string(out) if name in ("symbol", "name") else int(out, 16)
+    return info, None
 
 
 def write(ca):
@@ -78,14 +89,15 @@ def main():
         if len(args) != 1:
             print(__doc__); return 2
         ca = args[0].strip()
-        if not re.fullmatch(r"[1-9A-HJ-NP-Za-km-z]{32,44}", ca) or b58_len(ca) != 32:
-            print(f"REFUSED: '{ca}' is not a valid Solana address"); return 1
-        info, err = on_chain_mint(ca)
+        if not re.fullmatch(r"0x[0-9a-fA-F]{40}", ca):
+            print(f"REFUSED: '{ca}' is not a 0x contract address"); return 1
+        info, err = on_chain_token(ca)
         if err:
             print(f"REFUSED: {err}"); return 1
-        print(f"mint OK  decimals={info.get('decimals')}  supply={info.get('supply')}  "
-              f"mintAuthority={info.get('mintAuthority')}  freezeAuthority={info.get('freezeAuthority')}")
-        msg = "site: publish $GENIUS contract address"
+        supply = info["totalSupply"] / 10 ** info["decimals"]
+        print(f"token OK  name={info['name']!r}  symbol={info['symbol']!r}  decimals={info['decimals']}  supply={supply:,.0f}")
+        print(f"explorer: https://robinhoodchain.blockscout.com/token/{ca}")
+        msg = "site: publish GENIUS contract address"
     write(ca)
     print("written:", ", ".join(FILES))
     if dry:

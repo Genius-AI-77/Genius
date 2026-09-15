@@ -480,17 +480,17 @@ footer a:hover{color:var(--volt)}
     <a class="btn ghost" href="#agents">Meet the six</a>
   </div>
   <div id="ca-card" class="cacard" hidden>
-    <div class="cacard-h"><span class="cacard-t"></span><span class="cacard-chain">Solana · contract address</span></div>
+    <div class="cacard-h"><span class="cacard-t">Contract address</span><span class="cacard-chain">Robinhood Chain · official</span></div>
     <div class="cacard-row">
       <code class="cacard-addr"></code>
       <button type="button" class="cacard-copy" data-act="copy-ca">Copy</button>
     </div>
     <div class="cacard-links">
-      <a class="cacard-link" data-link="solscan" target="_blank" rel="noopener noreferrer">Solscan</a>
-      <a class="cacard-link" data-link="dexscreener" target="_blank" rel="noopener noreferrer">Chart</a>
-      <a class="cacard-link" data-link="jupiter" target="_blank" rel="noopener noreferrer">Swap on Jupiter</a>
+      <a class="cacard-link" data-link="explorer" target="_blank" rel="noopener noreferrer">Explorer</a>
+      <a class="cacard-link" data-link="chart" target="_blank" rel="noopener noreferrer">Chart</a>
+      <a class="cacard-link" href="#token">Details</a>
     </div>
-    <p class="cacard-note">This is the only official contract address. Verify it here before you trust it anywhere else.</p>
+    <p class="cacard-note">This is the only official source for the contract address. If you see an address anywhere else before it appears here, it is fake.</p>
   </div>
 </div></header>
 
@@ -743,11 +743,11 @@ footer a:hover{color:var(--volt)}
 
 <!-- 08 (shown once the contract address is set in ca.js) -->
 <section id="token" hidden><div class="wrap">
-  <div class="kicker"><b>08</b> / The Token</div>
-  <h2>One <em>address</em>. Check it here.</h2>
-  <p class="dek">$GENIUS is out on Solana. This section is the only place we publish the contract
-    address. If you see a different one anywhere else, in a reply, in a group chat, on an account
-    that looks like ours, it is not ours. Come back here and compare.</p>
+  <div class="kicker"><b>08</b> / Token</div>
+  <h2>Contract<span class="dot">.</span></h2>
+  <p class="dek">We are funding the development of GENIUS with a token on Robinhood Chain. This page
+    is the only official source for the contract address. If you see an address anywhere else before
+    it appears here, it is fake.</p>
 
   <div class="tok-card">
     <div class="tok-row">
@@ -755,45 +755,31 @@ footer a:hover{color:var(--volt)}
       <div class="tok-v" id="tok-addr"></div>
       <button class="cacard-copy" type="button" data-act="copy-ca">Copy</button>
     </div>
-    <div class="tok-row"><div class="tok-k">Ticker</div><div class="tok-v big" id="tok-ticker">$GENIUS</div></div>
-    <div class="tok-row"><div class="tok-k">Chain</div><div class="tok-v">Solana</div></div>
+    <div class="tok-row"><div class="tok-k">Chain</div><div class="tok-v">Robinhood Chain</div></div>
     <div class="tok-row"><div class="tok-k">Verify</div><div class="tok-v tok-links cacard-links">
-      <a class="cacard-link" data-link="solscan" target="_blank" rel="noopener noreferrer">Solscan</a>
-      <a class="cacard-link" data-link="dexscreener" target="_blank" rel="noopener noreferrer">Chart</a>
-      <a class="cacard-link" data-link="jupiter" target="_blank" rel="noopener noreferrer">Swap on Jupiter</a>
+      <a class="cacard-link" data-link="explorer" target="_blank" rel="noopener noreferrer">Explorer</a>
+      <a class="cacard-link" data-link="chart" target="_blank" rel="noopener noreferrer">Chart</a>
       <a class="cacard-link" href="https://x.com/geniusproto" target="_blank" rel="noopener noreferrer">@geniusproto on X</a>
     </div></div>
   </div>
 
   <div class="tok-grid">
     <div class="mod pair">
-      <h5>What the token is for</h5>
-      <p>GENIUS is a lab that trades in public. The token is how the build gets funded: the desk that
-        runs today, the compute that comes next, and the road to the 33 machines. Holding it is a way
-        to back the work and to be early to it. It is not a claim on the hardware, the desk wallet or
-        the code, and we will never say it is.</p>
+      <h5>How the fees work</h5>
+      <p>Every trade carries a fee. Fees fund the project: development first, then buybacks,
+        liquidity and marketing. Every claim and every spend gets posted with its transaction link,
+        so anyone can check where the money went.</p>
     </div>
     <div class="mod pair">
-      <h5>How to know it is real</h5>
-      <p>Copy the address from this page. Open it on Solscan. Compare every character with what is
-        in your wallet or on the chart someone sent you. Nothing else counts. We will never message
-        you an address, never ask you to send funds to one, and never run a claim or a mint.</p>
-    </div>
-    <div class="mod pair">
-      <h5>What we publish</h5>
-      <p>Every trade the desk takes is on chain, from a wallet that signs nothing else. The console
-        shows the books, the equity curve and the audit report, and a losing day goes up at the same
-        size as a winning one. That is the whole point of doing this in the open.</p>
-    </div>
-    <div class="mod pair">
-      <h5>Read before you act</h5>
-      <p>Nothing on this page is financial advice. The token is early, the market is volatile, and
-        the desk can lose money on any given day. Only put in what you are fine watching move.
-        Questions go to <a href="https://x.com/geniusproto" target="_blank" rel="noopener noreferrer">@geniusproto</a>.</p>
+      <h5>Why a token</h5>
+      <p>The lab runs today and the console is free to watch. Building the rest properly, the
+        compute, the cluster, and the audits the desk needs before it handles more than pilot money,
+        costs money. The token is how we raise it while keeping the research public. Holding it backs
+        the work. It is not a claim on the hardware or the code.</p>
     </div>
   </div>
-  <!-- TODO before drop, if the facts are final: a "Fees" mod (fee %, where it goes, proof link)
-       and a "Team wallet" mod (lock tool, duration, address). Ask the boss; do not guess. -->
+  <p class="tok-foot">Nothing on this page is financial advice. Questions:
+    <a href="https://x.com/geniusproto" target="_blank" rel="noopener noreferrer">@geniusproto</a>.</p>
 </div></section>
 
 <!-- 09 -->

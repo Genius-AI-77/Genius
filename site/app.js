@@ -47,28 +47,21 @@ document.querySelectorAll('[data-open-wallet]').forEach(function(b){
 
 (function(){
   var T=window.GENIUS_TOKEN; if(!T||!T.ca) return;
-  var ca=T.ca, short=ca.slice(0,4)+'\u2026'+ca.slice(-4);
+  var ca=T.ca, short=ca.slice(0,6)+'\u2026'+ca.slice(-4);
+  var explorer=(T.explorer||'https://robinhoodchain.blockscout.com')+'/token/'+encodeURIComponent(ca);
+  var chart='https://dexscreener.com/search?q='+encodeURIComponent(ca);
   var chip=document.getElementById('ca-chip'), card=document.getElementById('ca-card');
   if(chip){ chip.querySelector('span').textContent=short; chip.hidden=false;
     chip.addEventListener('click',function(){ copy(ca, chip.querySelector('span'), short); }); }
-  if(card){
-    card.querySelector('.cacard-t').textContent=T.ticker||'$GENIUS';
-    card.querySelector('.cacard-addr').textContent=ca;
-    card.querySelector('[data-link=solscan]').href='https://solscan.io/token/'+encodeURIComponent(ca);
-    card.querySelector('[data-link=dexscreener]').href='https://dexscreener.com/solana/'+encodeURIComponent(ca);
-    card.querySelector('[data-link=jupiter]').href='https://jup.ag/swap/SOL-'+encodeURIComponent(ca);
-    card.hidden=false;
-    var b=card.querySelector('[data-act=copy-ca]'); b.addEventListener('click',function(){ copy(ca, b, 'Copy'); });
+  function wire(root){
+    root.querySelector('[data-link=explorer]').href=explorer;
+    root.querySelector('[data-link=chart]').href=chart;
+    var b=root.querySelector('[data-act=copy-ca]'); b.addEventListener('click',function(){ copy(ca, b, 'Copy'); });
   }
+  if(card){ card.querySelector('.cacard-addr').textContent=ca; wire(card); card.hidden=false; }
   var sec=document.getElementById('token'), tab=document.getElementById('nav-token');
   if(sec){
-    sec.querySelector('#tok-addr').textContent=ca;
-    sec.querySelector('#tok-ticker').textContent=T.ticker||'$GENIUS';
-    sec.querySelector('[data-link=solscan]').href='https://solscan.io/token/'+encodeURIComponent(ca);
-    sec.querySelector('[data-link=dexscreener]').href='https://dexscreener.com/solana/'+encodeURIComponent(ca);
-    sec.querySelector('[data-link=jupiter]').href='https://jup.ag/swap/SOL-'+encodeURIComponent(ca);
-    var b2=sec.querySelector('[data-act=copy-ca]'); b2.addEventListener('click',function(){ copy(ca, b2, 'Copy'); });
-    sec.hidden=false;
+    sec.querySelector('#tok-addr').textContent=ca; wire(sec); sec.hidden=false;
     // sections after it shift one number down the page
     Array.prototype.forEach.call(document.querySelectorAll('.kicker b[data-n]'),function(el){ el.textContent=String(parseInt(el.getAttribute('data-n'),10)+1).padStart(2,'0'); });
   }
