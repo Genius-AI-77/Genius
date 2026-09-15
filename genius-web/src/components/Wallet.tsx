@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  discover, fetchBalance, onWalletsChange, ownershipMessage, prefs, short, verify, wallets,
-  type Adapter, type Connected,
+  CHAIN_ID, EXPLORER, discover, fetchBalance, fetchTokenBalance, looksSigned, onWalletsChange,
+  ownershipMessage, prefs, short, wallets, type Adapter, type Connected,
 } from "../lib/wallet";
 
-type Verified = null | "yes" | "no" | "unsupported";
+type Verified = null | "yes" | "no";
+const tokenCA = () => (window as unknown as { GENIUS_TOKEN?: { ca?: string; chain?: string } }).GENIUS_TOKEN;
 
 /** Connect button for the nav + the dropdown panel. Read-only by construction. */
 export function WalletButton() {
@@ -13,6 +14,7 @@ export function WalletButton() {
   const [adapter, setAdapter] = useState<Adapter | null>(null);
   const [conn, setConn] = useState<Connected | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
+  const [token, setToken] = useState<number | null | undefined>(undefined);
   const [verified, setVerified] = useState<Verified>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +46,7 @@ export function WalletButton() {
 
   const disconnect = useCallback((keepPref = false) => {
     adapter?.disconnect().catch(() => undefined);
-    setAdapter(null); setConn(null); setBalance(null); setVerified(null); setError(null);
+    setAdapter(null); setConn(null); setBalance(null); setToken(undefined); setVerified(null); setError(null);
     if (!keepPref) prefs.clear();
   }, [adapter]);
 
@@ -52,9 +54,11 @@ export function WalletButton() {
     setBusy(true); setError(null);
     try {
       const c = await a.connect(silent);
-      setAdapter(a); setConn(c); setVerified(null); setBalance(null);
+      setAdapter(a); setConn(c); setVerified(null); setBalance(null); setToken(undefined);
       prefs.set(a.name);
-      a.onChange(() => disconnect(true));
+      a.onChange((accounts) => { if (accounts && accounts.length === 0) disconnect(true); else void connect(a, true); });
+      const T = tokenCA();
+      if (T?.ca && T.chain === "robinhood") void fetchTokenBalance(c.address, T.ca).then(setToken);
       setBalance(await fetchBalance(c.address));
     } catch (e) {
       if (!silent) setError((e as Error)?.message ?? "Connection rejected");
@@ -67,15 +71,21 @@ export function WalletButton() {
     if (!adapter || !conn) return;
     setBusy(true); setError(null);
     try {
-      const bytes = new TextEncoder().encode(ownershipMessage(conn.address));
-      const sig = await adapter.signMessage(conn.account, bytes);
-      const ok = await verify(conn.pubkey, bytes, sig);
-      setVerified(ok === null ? "unsupported" : ok ? "yes" : "no");
+      const sig = await adapter.signMessage(conn.address, ownershipMessage(conn.address));
+      setVerified(looksSigned(sig) ? "yes" : "no");
     } catch (e) {
       setError((e as Error)?.message ?? "Signature rejected");
     } finally {
       setBusy(false);
     }
+  }, [adapter, conn]);
+
+  const switchChain = useCallback(async () => {
+    if (!adapter || !conn) return;
+    setBusy(true); setError(null);
+    try { setConn({ ...conn, chainId: await adapter.switchChain() }); }
+    catch (e) { setError((e as Error)?.message ?? "Switch rejected"); }
+    finally { setBusy(false); }
   }, [adapter, conn]);
 
   const btnBase =
@@ -102,7 +112,7 @@ export function WalletButton() {
         >
           <div className="mb-3.5 flex items-center gap-2.5 border-b border-line pb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-ink">
             <span>Wallet</span>
-            <span className="ml-auto font-medium normal-case tracking-[0.08em] text-ink-3">Solana · mainnet · read-only</span>
+            <span className="ml-auto font-medium normal-case tracking-[0.08em] text-ink-3">Robinhood Chain · read-only</span>
             <button type="button" onClick={() => setOpen(false)} aria-label="Close"
               className="pl-1.5 text-[20px] leading-none text-ink-3 hover:text-volt">×</button>
           </div>
@@ -113,17 +123,27 @@ export function WalletButton() {
                 <code className="cursor-copy text-volt" title={conn.address}
                   onClick={() => navigator.clipboard?.writeText(conn.address)}>{short(conn.address)}</code>
               </Row>
-              <Row k="SOL balance"><b className="font-medium text-ink">{balance === null ? "…" : `${balance.toFixed(4)} SOL`}</b></Row>
+              {conn.chainId !== null && conn.chainId !== CHAIN_ID && (
+                <Row k="Network">
+                  <b className="font-medium text-ink"><span className="text-danger">not Robinhood Chain</span>{" "}
+                    <button type="button" disabled={busy} onClick={switchChain}
+                      className="ml-2 rounded-[3px] border border-volt px-2 py-[3px] font-mono text-[9.5px] font-semibold uppercase tracking-[0.1em] text-volt hover:bg-volt hover:text-[#07130a]">Switch</button></b>
+                </Row>
+              )}
+              <Row k="ETH balance"><b className="font-medium text-ink">{balance === null ? "…" : `${balance.toFixed(5)} ETH`}</b></Row>
+              {tokenCA()?.ca && tokenCA()?.chain === "robinhood" && (
+                <Row k="GENIUS"><b className="font-medium text-ink">{token === undefined ? "…" : token === null ? <span className="text-ink-3">unavailable</span> : token.toLocaleString("en-US", { maximumFractionDigits: 2 })}</b></Row>
+              )}
               <Row k="Ownership">
                 <b className="font-medium text-ink">
-                  {verified === "yes" ? <span className="text-volt">Verified ✓</span>
+                  {verified === "yes" ? <span className="text-volt">Signed ✓</span>
                     : verified === "no" ? <span className="text-danger">Signature did not verify</span>
-                    : verified === "unsupported" ? "Signed (browser cannot verify Ed25519)"
                     : <span className="text-ink-3">not proven</span>}
                 </b>
               </Row>
               <div className="mb-1 mt-3.5 flex flex-wrap gap-2">
                 <button type="button" className="btn btn-solid !px-4 !py-2.5 !text-[10.5px]" disabled={busy} onClick={prove}>Prove ownership</button>
+                <a className="btn btn-ghost !px-4 !py-2.5 !text-[10.5px]" href={`${EXPLORER}/address/${conn.address}`} target="_blank" rel="noopener noreferrer">Explorer</a>
                 <button type="button" className="btn btn-ghost !px-4 !py-2.5 !text-[10.5px]" onClick={() => disconnect(false)}>Disconnect</button>
               </div>
             </>
@@ -140,10 +160,10 @@ export function WalletButton() {
             </div>
           ) : (
             <p className="font-mono text-[12.5px] leading-[1.7] text-ink-2">
-              No Solana wallet detected in this browser.<br />Install{" "}
-              <a className="text-volt" href="https://phantom.app" target="_blank" rel="noopener noreferrer">Phantom</a>,{" "}
-              <a className="text-volt" href="https://solflare.com" target="_blank" rel="noopener noreferrer">Solflare</a> or{" "}
-              <a className="text-volt" href="https://backpack.app" target="_blank" rel="noopener noreferrer">Backpack</a>, then reload.
+              No browser wallet detected.<br />Install{" "}
+              <a className="text-volt" href="https://metamask.io" target="_blank" rel="noopener noreferrer">MetaMask</a>,{" "}
+              <a className="text-volt" href="https://rabby.io" target="_blank" rel="noopener noreferrer">Rabby</a> or the{" "}
+              <a className="text-volt" href="https://robinhood.com/web3-wallet" target="_blank" rel="noopener noreferrer">Robinhood Wallet</a>, then reload.
             </p>
           )}
 
@@ -179,9 +199,10 @@ export function WalletCard() {
         <span className="inline-block rounded-[3px] border border-volt/40 bg-volt/10 px-2 py-[3px] align-[1px] font-mono text-[9.5px] font-semibold uppercase tracking-[0.14em] text-volt">Read-only</span>
       </h5>
       <p className="max-w-[74ch] text-[15.5px] leading-[1.68] text-ink-2">
-        Three things, and only three: it shows your public address, shows your SOL balance, and, if you
-        choose, asks your wallet to sign a message you can read in full, proving you control the
-        address. That is all it can ever do.
+        Three things, and only three: it shows your public address, shows your ETH balance on Robinhood
+        Chain, and, if you choose, asks your wallet to sign a message you can read in full, proving you
+        control the address. That is all it can ever do. It works with MetaMask, Rabby, the Robinhood
+        Wallet and any wallet that speaks the standard.
       </p>
       <ul className="mt-[18px] list-disc pl-[18px] text-[14.5px] leading-[1.62] text-ink-2 marker:text-ink-3">
         <li className="mb-2.5">This site <strong className="font-semibold text-ink">never requests a transaction signature</strong>. It cannot move funds or approve transfers, which is the mechanism behind every wallet-drainer scam. A test in the codebase fails the build if that code ever appears.</li>

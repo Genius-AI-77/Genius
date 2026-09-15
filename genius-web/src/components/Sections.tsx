@@ -452,7 +452,7 @@ export function Connect() {
         Bring your <Hi>wallet</Hi>.
       </H2>
       <p className="dek">
-        Connect a Solana wallet to follow the build from the inside. It is read-only by design. Here is exactly what that means.
+        Connect a wallet on Robinhood Chain to follow the build from the inside. It is read-only by design. Here is exactly what that means.
       </p>
       <WalletCard />
     </Section>

@@ -198,7 +198,7 @@ export const ledgerRows: { component: string; status: Status; note: string }[] =
   { component: "LLM reasoning layer", status: "plan", note: "Next up. Models will read and interpret; every number and limit stays in code" },
   { component: "Order-book depth / DOM", status: "impl", note: "Level-2 snapshot each run, recorded to disk; continuous streaming is planned" },
   { component: "Daily automated run", status: "impl", note: "GitHub Actions: tests, live run, commit, redeploy. No servers, no keys" },
-  { component: "Wallet connect (Solana)", status: "impl", note: "Read-only: public address, balance, message-signature ownership proof. Never requests a transaction signature, enforced by a build test" },
+  { component: "Wallet connect (Robinhood Chain)", status: "impl", note: "Read-only: public address, balance, message-signature ownership proof. Never requests a transaction signature, enforced by a build test" },
   { component: "Footprint & replay tooling", status: "plan", note: "Studied against public references; nothing proprietary copied" },
   { component: "Futures order-flow data", status: "block", note: "Phase three, once the edge is demonstrated on the current market" },
   { component: "33× DGX Spark cluster", status: "block", note: "Phase two. Benchmark on one or two units, then scale to 33" },

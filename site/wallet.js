@@ -1,11 +1,15 @@
-/* GENIUS — Solana wallet connect. READ-ONLY BY CONSTRUCTION.
+/* GENIUS — wallet connect for Robinhood Chain. READ-ONLY BY CONSTRUCTION.
  *
  * What this file can do:
- *   • discover installed Solana wallets (Wallet Standard, with a legacy fallback)
- *   • ask the wallet for the user's PUBLIC address
- *   • ask the wallet to sign a human-readable message the user can see in full,
- *     to prove they control the address (costs nothing, moves nothing)
- *   • read the SOL balance of that public address from a public RPC
+ *   • discover installed browser wallets (EIP-6963 announcements, with the
+ *     legacy window.ethereum fallback): MetaMask, Rabby, Robinhood Wallet, ...
+ *   • ask the wallet for the user's PUBLIC address (eth_requestAccounts)
+ *   • offer to switch the wallet to Robinhood Chain (a wallet prompt the user
+ *     approves; it changes a setting, it moves nothing)
+ *   • ask the wallet to sign a human-readable message the user can see in
+ *     full, to prove they control the address (costs nothing, moves nothing)
+ *   • read the ETH balance and the GENIUS balance of that public address from
+ *     the chain's public RPC
  *
  * What this file cannot do, and no future edit may add:
  *   • request a transaction signature of any kind. The site therefore has no
@@ -22,91 +26,38 @@
 (function () {
   'use strict';
 
-  var RPC = 'https://api.mainnet-beta.solana.com';
+  var CHAIN_ID = 4663;
+  var CHAIN_HEX = '0x1237';
+  var RPC = 'https://rpc.mainnet.chain.robinhood.com';
+  var EXPLORER = 'https://robinhoodchain.blockscout.com';
   var LS_KEY = 'genius.wallet.name';
-  var CHAIN = 'solana:mainnet';
 
   /* ---------------------------------------------------------- discovery */
 
-  var wallets = {};            // name → normalised adapter
-  var state = { adapter: null, address: null, pubkey: null, balance: null, token: undefined,
-                verified: null, busy: false, error: null };
+  var wallets = {};            // name → { name, icon, provider }
+  var state = { provider: null, name: null, address: null, chainId: null, balance: null,
+                token: undefined, verified: null, busy: false, error: null };
 
-  function registerStandard(w) {
-    try {
-      if (!w || !w.chains || !w.features || !w.features['standard:connect']) return;
-      if (!w.chains.some(function (c) { return String(c).indexOf('solana:') === 0; })) return;
-      wallets[w.name] = {
-        name: w.name, icon: w.icon || '',
-        connect: function (silent) {
-          return w.features['standard:connect'].connect(silent ? { silent: true } : undefined)
-            .then(function (r) {
-              var acc = (r.accounts || []).filter(function (a) {
-                return !a.chains || a.chains.indexOf(CHAIN) >= 0;
-              })[0] || (r.accounts || [])[0];
-              if (!acc) throw new Error('No Solana account returned');
-              return { account: acc, address: acc.address, pubkey: new Uint8Array(acc.publicKey) };
-            });
-        },
-        signMessage: function (account, bytes) {
-          var f = w.features['solana:signMessage'];
-          if (!f) return Promise.reject(new Error('Wallet cannot sign messages'));
-          return f.signMessage({ account: account, message: bytes }).then(function (out) {
-            var o = Array.isArray(out) ? out[0] : out;
-            return new Uint8Array(o.signature);
-          });
-        },
-        disconnect: function () {
-          var f = w.features['standard:disconnect'];
-          return f ? f.disconnect() : Promise.resolve();
-        },
-        onChange: function (cb) {
-          var f = w.features['standard:events'];
-          if (f) f.on('change', cb);
-        }
-      };
-      render();
-    } catch (e) { /* a broken wallet must not break the page */ }
-  }
-
-  // Wallet Standard handshake: wallets already loaded answer app-ready;
-  // wallets that load later announce themselves with register-wallet.
-  window.addEventListener('wallet-standard:register-wallet', function (ev) {
-    try { ev.detail({ register: function () {
-      Array.prototype.forEach.call(arguments, registerStandard); } }); } catch (e) {}
-  });
-  try {
-    window.dispatchEvent(new CustomEvent('wallet-standard:app-ready', {
-      detail: { register: function () { Array.prototype.forEach.call(arguments, registerStandard); } }
-    }));
-  } catch (e) {}
-
-  // Legacy fallback (older Phantom-style injection). Only used when nothing
-  // registered through the standard.
-  function registerLegacy() {
-    if (Object.keys(wallets).length) return;
-    var p = (window.phantom && window.phantom.solana) || window.solana;
-    if (!p || typeof p.connect !== 'function') return;
-    wallets['Phantom'] = {
-      name: 'Phantom', icon: '',
-      connect: function (silent) {
-        return p.connect(silent ? { onlyIfTrusted: true } : undefined).then(function (r) {
-          var pk = (r && r.publicKey) || p.publicKey;
-          return { account: null, address: pk.toString(), pubkey: new Uint8Array(pk.toBytes()) };
-        });
-      },
-      signMessage: function (_acc, bytes) {
-        return p.signMessage(bytes, 'utf8').then(function (r) { return new Uint8Array(r.signature); });
-      },
-      disconnect: function () { return p.disconnect(); },
-      onChange: function (cb) { try { p.on('accountChanged', cb); p.on('disconnect', cb); } catch (e) {} }
-    };
+  // EIP-6963: every installed wallet announces itself; no more fighting over window.ethereum.
+  window.addEventListener('eip6963:announceProvider', function (ev) {
+    var d = ev.detail || {};
+    if (!d.provider || !d.info || !d.info.name) return;
+    wallets[d.info.name] = { name: d.info.name, icon: d.info.icon || '', provider: d.provider };
     render();
+  });
+  function discover() {
+    try { window.dispatchEvent(new Event('eip6963:requestProvider')); } catch (e) {}
+    if (window.ethereum && !Object.keys(wallets).length) {
+      var p = window.ethereum;
+      var name = p.isRabby ? 'Rabby' : p.isRobinhood ? 'Robinhood Wallet' : p.isMetaMask ? 'MetaMask' : 'Browser wallet';
+      wallets[name] = { name: name, icon: '', provider: p };
+    }
   }
 
   /* ------------------------------------------------------------ helpers */
 
-  function short(a) { return a ? a.slice(0, 4) + '…' + a.slice(-4) : ''; }
+  function short(a) { return a ? a.slice(0, 6) + '…' + a.slice(-4) : ''; }
+  function pad(x) { return x.replace(/^0x/, '').toLowerCase().padStart(64, '0'); }
 
   function nonce() {
     var b = new Uint8Array(16); crypto.getRandomValues(b);
@@ -116,82 +67,107 @@
   // The message is shown to the user in full by the wallet before signing.
   // It is domain-bound and single-use so it cannot be replayed elsewhere.
   function ownershipMessage(address) {
-    return 'GENIUS wants you to prove you control this Solana address:\n' + address +
+    return 'GENIUS wants you to prove you control this address on Robinhood Chain:\n' + address +
       '\n\nThis signature proves ownership only. It costs nothing, moves nothing, ' +
       'and grants this site no permissions.\n\nDomain: ' + location.host +
       '\nNonce: ' + nonce() + '\nIssued At: ' + new Date().toISOString();
   }
 
-  // Ed25519 verification in the browser via WebCrypto (Chrome 113+, Safari 17+,
-  // Firefox 130+). Returns true/false, or null where the browser lacks support.
-  function verify(pubkey, msgBytes, sig) {
-    if (!(crypto.subtle && crypto.subtle.importKey)) return Promise.resolve(null);
-    return crypto.subtle.importKey('raw', pubkey, { name: 'Ed25519' }, false, ['verify'])
-      .then(function (k) { return crypto.subtle.verify({ name: 'Ed25519' }, k, sig, msgBytes); })
-      .catch(function () { return null; });
-  }
-
-  function fetchTokenBalance(address, mint) {
+  function rpc(method, params) {
     return fetch(RPC, { method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'getTokenAccountsByOwner',
-        params: [address, { mint: mint }, { encoding: 'jsonParsed' }] }) })
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: method, params: params }) })
       .then(function (r) { return r.json(); })
-      .then(function (j) {
-        var total = 0; ((j.result || {}).value || []).forEach(function (a) {
-          total += Number(a.account.data.parsed.info.tokenAmount.uiAmount || 0); });
-        return total; })
-      .catch(function () { return null; });
+      .then(function (j) { if (j.error) throw new Error(j.error.message || 'rpc error'); return j.result; });
   }
 
   function fetchBalance(address) {
-    return fetch(RPC, { method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getBalance', params: [address] }) })
-      .then(function (r) { return r.json(); })
-      .then(function (j) { return j.result ? j.result.value / 1e9 : null; })
+    return rpc('eth_getBalance', [address, 'latest']).then(function (hex) { return parseInt(hex, 16) / 1e18; })
       .catch(function () { return null; });
+  }
+
+  // ERC-20 balanceOf + decimals through eth_call; a read, nothing else.
+  function fetchTokenBalance(address, ca) {
+    var bal = rpc('eth_call', [{ to: ca, data: '0x70a08231' + pad(address) }, 'latest']);
+    var dec = rpc('eth_call', [{ to: ca, data: '0x313ce567' }, 'latest']);
+    return Promise.all([bal, dec]).then(function (r) {
+      var d = parseInt(r[1], 16) || 18;
+      return Number(BigInt(r[0]) * 1000000n / (10n ** BigInt(d))) / 1e6;
+    }).catch(function () { return null; });
   }
 
   /* ------------------------------------------------------------ actions */
 
   function connect(name, silent) {
-    var a = wallets[name]; if (!a) return;
+    var w = wallets[name];
+    if (!w || state.busy) return Promise.resolve();
     state.busy = true; state.error = null; render();
-    a.connect(!!silent).then(function (r) {
-      state.adapter = a; state.account = r.account; state.address = r.address;
-      state.pubkey = r.pubkey; state.verified = null; state.balance = null;
+    var req = silent ? w.provider.request({ method: 'eth_accounts' })
+                     : w.provider.request({ method: 'eth_requestAccounts' });
+    return req.then(function (accounts) {
+      if (!accounts || !accounts.length) { if (!silent) throw new Error('No account returned'); return; }
+      state.provider = w.provider; state.name = name; state.address = accounts[0];
+      state.verified = null; state.balance = null; state.token = undefined;
       try { localStorage.setItem(LS_KEY, name); } catch (e) {}
-      a.onChange(function () { disconnect(true); });
-      render();
-      var T = window.GENIUS_TOKEN;
-      if (T && T.ca && T.chain === 'solana') fetchTokenBalance(r.address, T.ca).then(function (b) { state.token = b; render(); });
-      return fetchBalance(r.address).then(function (b) { state.balance = b; render(); });
+      try {
+        w.provider.on('accountsChanged', function (a) { if (!a || !a.length) disconnect(true); else { state.address = a[0]; state.verified = null; refresh(); } });
+        w.provider.on('chainChanged', function (c) { state.chainId = parseInt(c, 16); render(); });
+        w.provider.on('disconnect', function () { disconnect(true); });
+      } catch (e) {}
+      return w.provider.request({ method: 'eth_chainId' }).then(function (c) { state.chainId = parseInt(c, 16); })
+        .catch(function () {}).then(refresh);
     }).catch(function (e) {
       if (!silent) state.error = (e && e.message) || 'Connection rejected';
     }).then(function () { state.busy = false; render(); });
   }
 
-  function disconnect(keepPref) {
-    var a = state.adapter;
-    state.adapter = state.account = state.address = state.pubkey = state.balance = null;
-    state.verified = null; state.error = null;
-    if (!keepPref) { try { localStorage.removeItem(LS_KEY); } catch (e) {} }
-    if (a) a.disconnect().catch(function () {});
+  function refresh() {
+    render();
+    var T = window.GENIUS_TOKEN;
+    if (T && T.ca && T.chain === 'robinhood') fetchTokenBalance(state.address, T.ca).then(function (b) { state.token = b; render(); });
+    return fetchBalance(state.address).then(function (b) { state.balance = b; render(); });
+  }
+
+  // Wallet prompt to switch networks; adds the chain if the wallet lacks it.
+  // Changes a wallet setting. Cannot move funds.
+  function switchChain() {
+    if (!state.provider) return;
+    state.busy = true; state.error = null; render();
+    state.provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: CHAIN_HEX }] })
+      .catch(function (e) {
+        if (e && (e.code === 4902 || /unrecognized|not added|4902/i.test(e.message || ''))) {
+          return state.provider.request({ method: 'wallet_addEthereumChain', params: [{
+            chainId: CHAIN_HEX, chainName: 'Robinhood Chain', rpcUrls: [RPC],
+            nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, blockExplorerUrls: [EXPLORER] }] });
+        }
+        throw e;
+      })
+      .then(function () { return state.provider.request({ method: 'eth_chainId' }); })
+      .then(function (c) { state.chainId = parseInt(c, 16); })
+      .catch(function (e) { state.error = (e && e.message) || 'Switch rejected'; })
+      .then(function () { state.busy = false; render(); });
+  }
+
+  function disconnect(silent) {
+    state.provider = null; state.name = null; state.address = null; state.chainId = null;
+    state.balance = null; state.token = undefined; state.verified = null;
+    if (!silent) { try { localStorage.removeItem(LS_KEY); } catch (e) {} }
     render();
   }
 
+  // personal_sign: the wallet shows the full text and signs it only if it holds
+  // the key for this address. The signature is shown, not sent anywhere.
   function prove() {
-    if (!state.adapter) return;
-    var msg = ownershipMessage(state.address);
-    var bytes = new TextEncoder().encode(msg);
+    if (!state.provider || !state.address || state.busy) return;
     state.busy = true; state.error = null; render();
-    state.adapter.signMessage(state.account, bytes)
-      .then(function (sig) { return verify(state.pubkey, bytes, sig); })
-      .then(function (ok) { state.verified = ok === null ? 'unsupported' : (ok ? 'yes' : 'no'); })
+    var msg = ownershipMessage(state.address);
+    var hex = '0x' + Array.prototype.map.call(new TextEncoder().encode(msg), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+    state.provider.request({ method: 'personal_sign', params: [hex, state.address] })
+      .then(function (sig) { state.verified = (sig && /^0x[0-9a-fA-F]{130}$/.test(sig)) ? 'yes' : 'no'; })
       .catch(function (e) { state.error = (e && e.message) || 'Signature rejected'; })
       .then(function () { state.busy = false; render(); });
   }
 
-  /* ---------------------------------------------------------------- UI */
+  /* ------------------------------------------------------------ render */
 
   var open = false;
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) {
@@ -207,26 +183,30 @@
     if (!open) return;
 
     var names = Object.keys(wallets);
-    var h = '<div class="wp-head"><span>Wallet</span><span class="wp-net">Solana · mainnet · read-only</span>' +
+    var h = '<div class="wp-head"><span>Wallet</span><span class="wp-net">Robinhood Chain · read-only</span>' +
             '<button class="wp-x" data-act="close" aria-label="Close">×</button></div>';
 
     if (state.address) {
       h += '<div class="wp-row"><span>Address</span><code title="' + esc(state.address) + '" data-act="copy">' +
            esc(short(state.address)) + '</code></div>';
-      h += '<div class="wp-row"><span>SOL balance</span><b>' +
-           (state.balance === null ? '…' : esc(state.balance.toFixed(4)) + ' SOL') + '</b></div>';
+      if (state.chainId && state.chainId !== CHAIN_ID) {
+        h += '<div class="wp-row"><span>Network</span><b><span class="wp-bad">not Robinhood Chain</span> ' +
+             '<button class="wp-mini" data-act="switch"' + (state.busy ? ' disabled' : '') + '>Switch</button></b></div>';
+      }
+      h += '<div class="wp-row"><span>ETH balance</span><b>' +
+           (state.balance === null ? '…' : esc(state.balance.toFixed(5)) + ' ETH') + '</b></div>';
       var T2 = window.GENIUS_TOKEN;
-      if (T2 && T2.ca && T2.chain === 'solana') h += '<div class="wp-row"><span>GENIUS</span><b>' +
-           (state.token === undefined ? '\u2026' : state.token === null ? '<span class="wp-dim">unavailable</span>' :
+      if (T2 && T2.ca && T2.chain === 'robinhood') h += '<div class="wp-row"><span>GENIUS</span><b>' +
+           (state.token === undefined ? '…' : state.token === null ? '<span class="wp-dim">unavailable</span>' :
             esc(Number(state.token).toLocaleString('en-US', { maximumFractionDigits: 2 }))) + '</b></div>';
       h += '<div class="wp-row"><span>Ownership</span><b>' +
-           (state.verified === 'yes' ? '<span class="wp-ok">Verified ✓</span>' :
+           (state.verified === 'yes' ? '<span class="wp-ok">Signed ✓</span>' :
             state.verified === 'no' ? '<span class="wp-bad">Signature did not verify</span>' :
-            state.verified === 'unsupported' ? 'Signed (browser cannot verify Ed25519)' :
             '<span class="wp-dim">not proven</span>') + '</b></div>';
       h += '<div class="wp-actions">' +
            '<button class="btn solid" data-act="prove"' + (state.busy ? ' disabled' : '') +
            '>Prove ownership</button>' +
+           '<a class="btn ghost" href="' + EXPLORER + '/address/' + esc(state.address) + '" target="_blank" rel="noopener noreferrer">Explorer</a>' +
            '<button class="btn ghost" data-act="disconnect">Disconnect</button></div>';
     } else if (names.length) {
       h += '<div class="wp-list">' + names.map(function (n) {
@@ -236,10 +216,10 @@
                (w.icon ? '<img src="' + esc(w.icon) + '" alt="">' : '') + esc(n) + '</button>';
       }).join('') + '</div>';
     } else {
-      h += '<p class="wp-none">No Solana wallet detected in this browser.<br>Install ' +
-           '<a href="https://phantom.app" target="_blank" rel="noopener noreferrer">Phantom</a>, ' +
-           '<a href="https://solflare.com" target="_blank" rel="noopener noreferrer">Solflare</a> or ' +
-           '<a href="https://backpack.app" target="_blank" rel="noopener noreferrer">Backpack</a>, then reload.</p>';
+      h += '<p class="wp-none">No browser wallet detected.<br>Install ' +
+           '<a href="https://metamask.io" target="_blank" rel="noopener noreferrer">MetaMask</a>, ' +
+           '<a href="https://rabby.io" target="_blank" rel="noopener noreferrer">Rabby</a> or the ' +
+           '<a href="https://robinhood.com/web3-wallet" target="_blank" rel="noopener noreferrer">Robinhood Wallet</a>, then reload.</p>';
     }
     if (state.error) h += '<p class="wp-err">' + esc(state.error) + '</p>';
 
@@ -256,22 +236,22 @@
     var t = ev.target.closest('[data-act]');
     var btn = document.getElementById('wallet-btn');
     var panel = document.getElementById('wallet-panel');
-    if (ev.target === btn) { open = !open; if (open) registerLegacy(); render(); return; }
+    if (ev.target === btn) { open = !open; if (open) discover(); render(); return; }
     if (!t) { if (open && panel && !panel.contains(ev.target)) { open = false; render(); } return; }
     var act = t.getAttribute('data-act');
     if (act === 'close') { open = false; render(); }
     else if (act === 'connect') connect(t.getAttribute('data-name'), false);
     else if (act === 'disconnect') disconnect(false);
     else if (act === 'prove') prove();
+    else if (act === 'switch') switchChain();
     else if (act === 'copy' && state.address && navigator.clipboard) navigator.clipboard.writeText(state.address);
   });
   document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && open) { open = false; render(); } });
 
   // Silent reconnect to the wallet used last time — never prompts.
   window.addEventListener('load', function () {
-    registerLegacy();
+    discover();
     var last = null; try { last = localStorage.getItem(LS_KEY); } catch (e) {}
-    if (last && wallets[last]) connect(last, true);
-    render();
+    setTimeout(function () { if (last && wallets[last]) connect(last, true); render(); }, 150);
   });
 })();

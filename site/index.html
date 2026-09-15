@@ -134,6 +134,8 @@ a{color:inherit}
       border:1px solid var(--line-2);background:transparent;color:var(--ink);
       font:600 10.5px var(--mono);letter-spacing:.13em;text-transform:uppercase;transition:.16s}
 .wbtn:hover{border-color:var(--volt);color:var(--volt);box-shadow:0 0 22px -6px var(--volt-glow)}
+.wp-mini{margin-left:8px;padding:3px 8px;border-radius:3px;border:1px solid var(--volt);background:transparent;color:var(--volt);font:600 9.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.wp-mini:hover{background:var(--volt);color:#07130a}
 .wbtn.connected{border-color:var(--volt);color:var(--volt);text-transform:none;letter-spacing:.04em}
 
 .wpanel{position:absolute;right:var(--gut);top:70px;width:min(400px,calc(100vw - 2*var(--gut)));
@@ -724,13 +726,13 @@ footer a:hover{color:var(--volt)}
 <section id="connect"><div class="wrap">
   <div class="kicker"><b>07</b> / Connect</div>
   <h2>Bring your <em>wallet</em>.</h2>
-  <p class="dek">Connect a Solana wallet to follow the build from the inside. It is read-only by
+  <p class="dek">Connect a wallet on Robinhood Chain to follow the build from the inside. It is read-only by
     design. Here is exactly what that means.</p>
 
   <div class="mod pair" style="margin-top:36px">
     <h5>What connecting does <span class="pill p-impl">Read-only</span></h5>
-    <p>Three things, and only three: it shows your public address, shows your SOL balance, and, if you choose, asks your wallet to sign a message you can read in full, proving you control
-      the address. That is all it can ever do.</p>
+    <p>Three things, and only three: it shows your public address, shows your ETH balance on Robinhood Chain, and, if you choose, asks your wallet to sign a message you can read in full, proving you control
+      the address. That is all it can ever do. It works with MetaMask, Rabby, the Robinhood Wallet and any wallet that speaks the standard.</p>
     <ul>
       <li>This site <strong>never requests a transaction signature</strong>. It cannot move funds
         or approve transfers, which is the mechanism behind every wallet-drainer scam. A test in the
@@ -826,7 +828,7 @@ footer a:hover{color:var(--volt)}
       <tr><td>LLM reasoning layer</td><td><span class="pill p-plan">Next</span></td><td>Next up. Models will read and interpret; every number and limit stays in code</td></tr>
       <tr><td>Order-book depth / DOM</td><td><span class="pill p-impl">Live</span></td><td>Level-2 snapshot each run, recorded to disk; continuous streaming is planned</td></tr>
       <tr><td>Daily automated run</td><td><span class="pill p-impl">Live</span></td><td>GitHub Actions: tests, live run, commit, redeploy. No servers, no keys</td></tr>
-      <tr><td>Wallet connect (Solana)</td><td><span class="pill p-impl">Live</span></td><td>Read-only: public address, balance, message-signature ownership proof. Never requests a transaction signature, enforced by a build test</td></tr>
+      <tr><td>Wallet connect (Robinhood Chain)</td><td><span class="pill p-impl">Live</span></td><td>Read-only: public address, balance, message-signature ownership proof. Never requests a transaction signature, enforced by a build test</td></tr>
       <tr><td>Footprint &amp; replay tooling</td><td><span class="pill p-plan">Next</span></td><td>Studied against public references; nothing proprietary copied</td></tr>
       <tr><td>Futures order-flow data</td><td><span class="pill p-block">Later</span></td><td>Phase three, once the edge is demonstrated on the current market</td></tr>
       <tr><td>33× DGX Spark cluster</td><td><span class="pill p-block">Later</span></td><td>Phase two. Benchmark on one or two units, then scale to 33</td></tr>
