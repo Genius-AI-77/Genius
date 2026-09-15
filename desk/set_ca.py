@@ -4,6 +4,8 @@
     python3 desk/set_ca.py <CONTRACT_ADDRESS>     validate on chain, write, commit, push
     python3 desk/set_ca.py <CONTRACT_ADDRESS> --dry   validate + write only, no git
     python3 desk/set_ca.py --clear                 blank it again
+    python3 desk/set_ca.py --fee-wallet 0x...      publish the wallet that receives the fees
+    python3 desk/set_ca.py --desk-wallet <sol>     publish the Solana wallet the desk trades from
 
 Validation: the address must be a 0x address AND be a deployed contract on
 Robinhood Chain (chain id 4663) that answers symbol(), decimals() and
@@ -67,12 +69,12 @@ def on_chain_token(addr):
     return info, None
 
 
-def write(ca):
+def write(ca, key="ca"):
     for f in FILES:
         p = os.path.join(ROOT, f)
         s = open(p).read()
-        s2 = re.sub(r'ca:\s*"[^"]*"', f'ca: "{ca}"', s, count=1)
-        assert s2 != s or ca == "" or f'ca: "{ca}"' in s, f"pattern not found in {f}"
+        s2, n = re.subn(rf'{key}:\s*"[^"]*"', f'{key}: "{ca}"', s, count=1)
+        assert n == 1, f"{key} field not found in {f}"
         open(p, "w").write(s2)
 
 
@@ -83,7 +85,18 @@ def git(*a):
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     dry = "--dry" in sys.argv
-    if "--clear" in sys.argv:
+    key = "ca"
+    if "--fee-wallet" in sys.argv:
+        key, ca = "feeWallet", (args[0].strip() if args else "")
+        if ca and not re.fullmatch(r"0x[0-9a-fA-F]{40}", ca):
+            print(f"REFUSED: '{ca}' is not a 0x address"); return 1
+        msg = "site: publish fee wallet"
+    elif "--desk-wallet" in sys.argv:
+        key, ca = "deskWallet", (args[0].strip() if args else "")
+        if ca and not re.fullmatch(r"[1-9A-HJ-NP-Za-km-z]{32,44}", ca):
+            print(f"REFUSED: '{ca}' is not a Solana address"); return 1
+        msg = "site: publish desk wallet"
+    elif "--clear" in sys.argv:
         ca, msg = "", "site: clear contract address"
     else:
         if len(args) != 1:
@@ -98,8 +111,8 @@ def main():
         print(f"token OK  name={info['name']!r}  symbol={info['symbol']!r}  decimals={info['decimals']}  supply={supply:,.0f}")
         print(f"explorer: https://robinhoodchain.blockscout.com/token/{ca}")
         msg = "site: publish GENIUS contract address"
-    write(ca)
-    print("written:", ", ".join(FILES))
+    write(ca, key)
+    print(f"written {key}:", ", ".join(FILES))
     if dry:
         return 0
     remote = ""

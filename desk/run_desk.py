@@ -77,6 +77,31 @@ def new_wallet() -> int:
     return 0
 
 
+def new_fee_wallet() -> int:
+    """Generate the fee wallet (Robinhood Chain, 0x) ON THIS MACHINE and store its
+    key in the secrets file as FEE_WALLET_KEY. Only the public address is printed.
+    Refuses to overwrite an existing key."""
+    from eth_account import Account
+    path = os.environ.get("DESK_SECRETS_FILE", os.path.expanduser("~/.genius-desk/secrets.env"))
+    existing = open(path).read() if os.path.exists(path) else ""
+    if "FEE_WALLET_KEY=" in existing and existing.split("FEE_WALLET_KEY=", 1)[1].split("\n", 1)[0].strip():
+        print(f"a fee wallet key already exists in {path}; not overwriting.")
+        return 1
+    acct = Account.create()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    lines = [l for l in existing.splitlines() if not l.startswith("FEE_WALLET_KEY=")]
+    lines.append(f"FEE_WALLET_KEY={acct.key.hex()}")
+    with open(path, "w") as f:
+        f.write("\n".join(lines) + "\n")
+    os.chmod(path, 0o600)
+    print("fee wallet created (Robinhood Chain / any EVM chain).")
+    print(f"  key file : {path}  (mode 600, owner only; never printed)")
+    print(f"  address  : {acct.address}")
+    print()
+    print("point the token's fee receiver at that address. back the file up somewhere safe.")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     g = ap.add_mutually_exclusive_group(required=True)
@@ -88,6 +113,7 @@ def main() -> int:
     g.add_argument("--probe", action="store_true", help="tiny round-trip test trade to prove the wiring")
     g.add_argument("--init-cash", action="store_true", help="solana: convert wallet SOL to USDC and split across books (run once after funding)")
     g.add_argument("--new-wallet", action="store_true", help="solana: create the desk wallet inside the secrets file; prints only the public address")
+    g.add_argument("--new-fee-wallet", action="store_true", help="robinhood chain: create the 0x fee wallet inside the secrets file; prints only the public address")
     ap.add_argument("--offline", action="store_true", help="synthetic market, no network")
     ap.add_argument("--no-publish", action="store_true")
     ap.add_argument("--config", default=None)
@@ -96,6 +122,8 @@ def main() -> int:
     cfg = DeskConfig.load(args.config)
     if args.new_wallet:
         return new_wallet()
+    if args.new_fee_wallet:
+        return new_fee_wallet()
     secrets = Secrets.load()
     desk = Desk(cfg, secrets, offline=args.offline)
 

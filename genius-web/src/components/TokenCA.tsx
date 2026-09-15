@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { H2, Hi, Kicker, Mod, Section } from "./ui";
 
-type Tok = { chain?: string; chainName?: string; chainId?: number; explorer?: string; ca?: string };
+type Tok = { chain?: string; chainName?: string; chainId?: number; explorer?: string; ca?: string; feeWallet?: string; deskWallet?: string };
 const tok = (): Tok => ((window as unknown as { GENIUS_TOKEN?: Tok }).GENIUS_TOKEN ?? {});
 const short = (a: string) => `${a.slice(0, 6)}\u2026${a.slice(-4)}`;
 const explorerUrl = (t: Tok) => `${t.explorer ?? "https://robinhoodchain.blockscout.com"}/token/${t.ca}`;
@@ -77,7 +77,7 @@ export function TokenSection() {
     </div>
   );
   const mods: [string, string][] = [
-    ["How the fees work", "Every trade carries a fee. Fees fund the project: development first, then buybacks, liquidity and marketing. Every claim and every spend gets posted with its transaction link, so anyone can check where the money went."],
+    ["How the fees work", "Every trade carries a fee. The fees go to the agents' wallet, published above. That is the money the desk trades with: the agents put it to work under the limits on this page, and every trade they take is on chain. You can follow the fees from the moment they land to the moment they are traded."],
     ["Why a token", "The lab runs today and the console is free to watch. Building the rest properly, the compute, the cluster, and the audits the desk needs before it handles more than pilot money, costs money. The token is how we raise it while keeping the research public. Holding it backs the work. It is not a claim on the hardware or the code."],
   ];
   return (
@@ -91,6 +91,18 @@ export function TokenSection() {
           <button type="button" onClick={() => copy(ca)} className="flex-none rounded-[5px] border border-volt bg-volt px-3.5 py-2.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[#07130a] hover:shadow-volt">{done ? "Copied" : "Copy"}</button>
         </Row>
         <Row k="Chain"><div className="font-mono text-[14px] font-medium text-ink">{t.chainName ?? "Robinhood Chain"}</div></Row>
+        {t.feeWallet && (
+          <Row k="Agents' wallet"><div className="min-w-0 flex-1 break-all font-mono text-[14px] font-medium">
+            <a href={`${t.explorer ?? "https://robinhoodchain.blockscout.com"}/address/${t.feeWallet}`} target="_blank" rel="noopener noreferrer" className="border-b border-line-2 text-ink no-underline hover:border-volt hover:text-volt">{t.feeWallet}</a>
+            <span className="mt-1.5 block font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-3">receives the fees · {t.chainName ?? "Robinhood Chain"}</span>
+          </div></Row>
+        )}
+        {t.deskWallet && (
+          <Row k="Desk wallet"><div className="min-w-0 flex-1 break-all font-mono text-[14px] font-medium">
+            <a href={`https://solscan.io/account/${t.deskWallet}`} target="_blank" rel="noopener noreferrer" className="border-b border-line-2 text-ink no-underline hover:border-volt hover:text-volt">{t.deskWallet}</a>
+            <span className="mt-1.5 block font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-3">the agents trade from here · Solana</span>
+          </div></Row>
+        )}
         <Row k="Verify"><div className="flex flex-wrap gap-4 font-mono text-[10.5px] font-medium uppercase tracking-[0.12em]">
           <Link href={explorerUrl(t)}>Explorer</Link><Link href={chartUrl(t)}>Chart</Link><Link href={X}>@geniusproto on X</Link>
         </div></Row>

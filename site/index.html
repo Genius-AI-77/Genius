@@ -123,6 +123,9 @@ a{color:inherit}
 .tok-grid{display:grid;gap:14px;margin-top:14px;grid-template-columns:1fr}
 @media(min-width:860px){.tok-grid{grid-template-columns:1fr 1fr}}
 .tok-grid .mod{margin-top:0}
+.tok-addr{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line-2)}
+.tok-addr:hover{color:var(--volt);border-color:var(--volt)}
+.tok-sub{display:block;margin-top:5px;font:400 10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 .tok-foot{margin-top:24px;font:400 12.5px/1.8 var(--mono);color:var(--ink-3)}
 .tok-foot a{color:var(--ink-2)}
 
@@ -756,6 +759,16 @@ footer a:hover{color:var(--volt)}
       <button class="cacard-copy" type="button" data-act="copy-ca">Copy</button>
     </div>
     <div class="tok-row"><div class="tok-k">Chain</div><div class="tok-v">Robinhood Chain</div></div>
+    <div class="tok-row" id="tok-fee-row" hidden>
+      <div class="tok-k">Agents' wallet</div>
+      <div class="tok-v"><a class="tok-addr" id="tok-fee" data-link="fee" target="_blank" rel="noopener noreferrer"></a>
+        <span class="tok-sub">receives the fees · Robinhood Chain</span></div>
+    </div>
+    <div class="tok-row" id="tok-desk-row" hidden>
+      <div class="tok-k">Desk wallet</div>
+      <div class="tok-v"><a class="tok-addr" id="tok-desk" data-link="desk" target="_blank" rel="noopener noreferrer"></a>
+        <span class="tok-sub">the agents trade from here · Solana</span></div>
+    </div>
     <div class="tok-row"><div class="tok-k">Verify</div><div class="tok-v tok-links cacard-links">
       <a class="cacard-link" data-link="explorer" target="_blank" rel="noopener noreferrer">Explorer</a>
       <a class="cacard-link" data-link="chart" target="_blank" rel="noopener noreferrer">Chart</a>
@@ -766,9 +779,10 @@ footer a:hover{color:var(--volt)}
   <div class="tok-grid">
     <div class="mod pair">
       <h5>How the fees work</h5>
-      <p>Every trade carries a fee. Fees fund the project: development first, then buybacks,
-        liquidity and marketing. Every claim and every spend gets posted with its transaction link,
-        so anyone can check where the money went.</p>
+      <p>Every trade carries a fee. The fees go to the agents' wallet, published above. That is the
+        money the desk trades with: the agents put it to work under the limits on this page, and every
+        trade they take is on chain. You can follow the fees from the moment they land to the moment
+        they are traded.</p>
     </div>
     <div class="mod pair">
       <h5>Why a token</h5>
