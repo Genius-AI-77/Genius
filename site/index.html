@@ -762,12 +762,7 @@ footer a:hover{color:var(--volt)}
     <div class="tok-row" id="tok-fee-row" hidden>
       <div class="tok-k">Agents' wallet</div>
       <div class="tok-v"><a class="tok-addr" id="tok-fee" data-link="fee" target="_blank" rel="noopener noreferrer"></a>
-        <span class="tok-sub">receives the fees · Robinhood Chain</span></div>
-    </div>
-    <div class="tok-row" id="tok-desk-row" hidden>
-      <div class="tok-k">Desk wallet</div>
-      <div class="tok-v"><a class="tok-addr" id="tok-desk" data-link="desk" target="_blank" rel="noopener noreferrer"></a>
-        <span class="tok-sub">the agents trade from here · Solana</span></div>
+        <span class="tok-sub">receives the fees and trades them · Robinhood Chain</span></div>
     </div>
     <div class="tok-row"><div class="tok-k">Verify</div><div class="tok-v tok-links cacard-links">
       <a class="cacard-link" data-link="explorer" target="_blank" rel="noopener noreferrer">Explorer</a>
@@ -779,10 +774,10 @@ footer a:hover{color:var(--volt)}
   <div class="tok-grid">
     <div class="mod pair">
       <h5>How the fees work</h5>
-      <p>Every trade carries a fee. The fees go to the agents' wallet, published above. That is the
-        money the desk trades with: the agents put it to work under the limits on this page, and every
-        trade they take is on chain. You can follow the fees from the moment they land to the moment
-        they are traded.</p>
+      <p>Every trade carries a fee. The fees go to the agents' wallet, published above, and that
+        same wallet is the one the desk trades from, on Uniswap, on this chain. No bridge, no second
+        address: the agents put the fees to work under the limits on this page, and every swap they
+        make is a transaction you can open on the explorer.</p>
     </div>
     <div class="mod pair">
       <h5>Why a token</h5>

@@ -64,7 +64,9 @@ def _reports(desk: Desk, metrics: dict) -> list[dict]:
     mode = desk.venue.mode
     out.append({"agent": "HERMES", "role": "Execution Specialist", "stance": "flat",
                 "confidence": 0.5, "status": "IMPLEMENTED",
-                "findings": [("Live venue: Solana spot through Jupiter, one dedicated wallet, every swap on Solscan. Long only; short reads stand aside."
+                "findings": [("Live venue: Uniswap v3 on Robinhood Chain, one desk wallet that also receives the token fees, every swap on Blockscout. Long only; short reads stand aside."
+                              if mode == "live" and desk.cfg.venue == "uniswap" else
+                              "Live venue: Solana spot through Jupiter, one dedicated wallet, every swap on Solscan. Long only; short reads stand aside."
                               if mode == "live" and desk.cfg.venue == "solana" else
                               "Live venue: Hyperliquid, one sub-account per book, exchange-side stops, agent key that cannot withdraw."
                               if mode == "live" else
@@ -80,6 +82,11 @@ def _reports(desk: Desk, metrics: dict) -> list[dict]:
                             + (["FLAG: negative after-cost expectancy. Recommend review before new entries."] if flag else []),
                 "data": metrics})
     return out
+
+
+_VENUE_NAME = {"uniswap": "Robinhood Chain", "solana": "Solana", "hyperliquid": "Hyperliquid"}
+_VENUE_LONG = {"uniswap": "Robinhood Chain (Uniswap v3 spot)", "solana": "Solana (Jupiter spot)", "hyperliquid": "Hyperliquid"}
+_VENUE_MODE = {"uniswap": "real swaps on Robinhood Chain", "solana": "real swaps on Solana", "hyperliquid": "real orders on Hyperliquid"}
 
 
 def build_payload(desk: Desk) -> dict:
@@ -114,12 +121,11 @@ def build_payload(desk: Desk) -> dict:
         "meta": {
             "source": inputs.get("candles", "unknown"), "inputs": inputs, "provenance": {},
             "instrument": cfg.instrument, "execution": desk.venue.mode,
-            "venue": (("Solana (Jupiter spot)" if cfg.venue == "solana" else "Hyperliquid") + f" {cfg.coin}") if desk.venue.mode == "live"
-                     else f"shadow ({cfg.coin} on {'Solana' if cfg.venue == 'solana' else 'Hyperliquid'} fee model)",
-            "venue_name": "Solana" if cfg.venue == "solana" else "Hyperliquid",
+            "venue": (f"{_VENUE_LONG[cfg.venue]} {cfg.coin}" if desk.venue.mode == "live"
+                      else f"shadow ({cfg.coin} on {_VENUE_NAME[cfg.venue]} fee model)"),
+            "venue_name": _VENUE_NAME[cfg.venue],
             "long_only": bool(getattr(desk.venue, "long_only", False)),
-            "mode": ("LIVE: real swaps on Solana" if desk.venue.mode == "live" and cfg.venue == "solana"
-                     else "LIVE: real orders on Hyperliquid" if desk.venue.mode == "live"
+            "mode": (f"LIVE: {_VENUE_MODE[cfg.venue]}" if desk.venue.mode == "live"
                      else "SHADOW: paper fills at the live mark, nothing sent"),
             "sessions": None, "bars_per_session": 24, "bar_seconds": cfg.bar_seconds,
             "generated_at": int(time.time()), "last_bar_ts": last_ts,

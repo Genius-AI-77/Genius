@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { H2, Hi, Kicker, Mod, Section } from "./ui";
 
-type Tok = { chain?: string; chainName?: string; chainId?: number; explorer?: string; ca?: string; feeWallet?: string; deskWallet?: string };
+type Tok = { chain?: string; chainName?: string; chainId?: number; explorer?: string; ca?: string; feeWallet?: string };
 const tok = (): Tok => ((window as unknown as { GENIUS_TOKEN?: Tok }).GENIUS_TOKEN ?? {});
 const short = (a: string) => `${a.slice(0, 6)}\u2026${a.slice(-4)}`;
 const explorerUrl = (t: Tok) => `${t.explorer ?? "https://robinhoodchain.blockscout.com"}/token/${t.ca}`;
@@ -77,7 +77,7 @@ export function TokenSection() {
     </div>
   );
   const mods: [string, string][] = [
-    ["How the fees work", "Every trade carries a fee. The fees go to the agents' wallet, published above. That is the money the desk trades with: the agents put it to work under the limits on this page, and every trade they take is on chain. You can follow the fees from the moment they land to the moment they are traded."],
+    ["How the fees work", "Every trade carries a fee. The fees go to the agents' wallet, published above, and that same wallet is the one the desk trades from, on Uniswap, on this chain. No bridge, no second address: the agents put the fees to work under the limits on this page, and every swap they make is a transaction you can open on the explorer."],
     ["Why a token", "The lab runs today and the console is free to watch. Building the rest properly, the compute, the cluster, and the audits the desk needs before it handles more than pilot money, costs money. The token is how we raise it while keeping the research public. Holding it backs the work. It is not a claim on the hardware or the code."],
   ];
   return (
@@ -94,13 +94,7 @@ export function TokenSection() {
         {t.feeWallet && (
           <Row k="Agents' wallet"><div className="min-w-0 flex-1 break-all font-mono text-[14px] font-medium">
             <a href={`${t.explorer ?? "https://robinhoodchain.blockscout.com"}/address/${t.feeWallet}`} target="_blank" rel="noopener noreferrer" className="border-b border-line-2 text-ink no-underline hover:border-volt hover:text-volt">{t.feeWallet}</a>
-            <span className="mt-1.5 block font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-3">receives the fees · {t.chainName ?? "Robinhood Chain"}</span>
-          </div></Row>
-        )}
-        {t.deskWallet && (
-          <Row k="Desk wallet"><div className="min-w-0 flex-1 break-all font-mono text-[14px] font-medium">
-            <a href={`https://solscan.io/account/${t.deskWallet}`} target="_blank" rel="noopener noreferrer" className="border-b border-line-2 text-ink no-underline hover:border-volt hover:text-volt">{t.deskWallet}</a>
-            <span className="mt-1.5 block font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-3">the agents trade from here · Solana</span>
+            <span className="mt-1.5 block font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-3">receives the fees and trades them · {t.chainName ?? "Robinhood Chain"}</span>
           </div></Row>
         )}
         <Row k="Verify"><div className="flex flex-wrap gap-4 font-mono text-[10.5px] font-medium uppercase tracking-[0.12em]">

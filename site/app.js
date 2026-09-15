@@ -64,8 +64,7 @@ document.querySelectorAll('[data-open-wallet]').forEach(function(b){
     sec.querySelector('#tok-addr').textContent=ca; wire(sec); sec.hidden=false;
     if(T.feeWallet){ var f=sec.querySelector('#tok-fee'); f.textContent=T.feeWallet;
       f.href=(T.explorer||'https://robinhoodchain.blockscout.com')+'/address/'+encodeURIComponent(T.feeWallet); sec.querySelector('#tok-fee-row').hidden=false; }
-    if(T.deskWallet){ var d=sec.querySelector('#tok-desk'); d.textContent=T.deskWallet;
-      d.href='https://solscan.io/account/'+encodeURIComponent(T.deskWallet); sec.querySelector('#tok-desk-row').hidden=false; }
+
     // sections after it shift one number down the page
     Array.prototype.forEach.call(document.querySelectorAll('.kicker b[data-n]'),function(el){ el.textContent=String(parseInt(el.getAttribute('data-n'),10)+1).padStart(2,'0'); });
   }

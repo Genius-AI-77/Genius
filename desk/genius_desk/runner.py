@@ -37,6 +37,7 @@ from genius_lab.risk import RiskEngine, TradeProposal       # noqa: E402
 from .config import DeskConfig, Secrets                     # noqa: E402
 from .venue import HyperliquidVenue, ShadowVenue, Venue
 from .solana_venue import SolanaVenue           # noqa: E402
+from .evm_venue import UniswapVenue             # noqa: E402
 
 
 class _BookEquity:
@@ -83,6 +84,11 @@ class Desk:
         names = [b.name for b in cfg.books]
         if venue is not None:
             self.venue = venue
+        elif cfg.mode == "live" and cfg.venue == "uniswap":
+            if not self.secrets.evm_key:
+                raise RuntimeError("live mode needs DESK_EVM_KEY in the secrets file (run --new-evm-wallet)")
+            self.venue = UniswapVenue(names, self.secrets.evm_key, self.secrets.rpc_url,
+                                      asset=cfg.asset, pool_fee=cfg.pool_fee, fee_token=cfg.fee_token or None)
         elif cfg.mode == "live" and cfg.venue == "solana":
             if not self.secrets.wallet_key:
                 raise RuntimeError("live mode needs DESK_WALLET_KEY in the secrets file")
@@ -99,7 +105,7 @@ class Desk:
         else:
             self.venue = ShadowVenue(names, cfg.starting_cash_per_book,
                                      mark=self.state.get("last_mark", 0.0) or 0.0)
-            self.venue.long_only = (cfg.venue == "solana")   # shadow mirrors the real venue
+            self.venue.long_only = cfg.venue in ("solana", "uniswap")   # shadow mirrors the real venue
         if self.state.get("venue"):
             self.venue.restore(self.state["venue"])
 
@@ -190,8 +196,16 @@ class Desk:
         if not mark:
             return {"ok": False, "error": "no mark price from venue"}
         qty = max(self.cfg.min_order, round(5.0 / mark, 4)) if getattr(self.venue, "long_only", False) else self.cfg.min_order
-        fill_in = self.venue.open(book, "long", qty, mark, mark * 0.97, 0.0)
-        closed = self.venue.close(book, self.venue.mark_price() or mark, 0.0, "connectivity probe")
+        try:
+            fill_in = self.venue.open(book, "long", qty, mark, mark * 0.97, 0.0)
+        except Exception as e:                       # no funds, paused token, rpc down: report, do not crash
+            return {"ok": False, "error": f"probe open refused: {e}", "mark": mark, "qty": qty}
+        try:
+            closed = self.venue.close(book, self.venue.mark_price() or mark, 0.0, "connectivity probe")
+        except Exception as e:
+            self.save()
+            return {"ok": False, "error": f"probe opened but close failed, position is OPEN on {book}: {e}",
+                    "tx_open": fill_in.tx}
         closed.reason = "connectivity probe (system check, not an agent decision)"
         entry = {"type": "probe", "ts": int(time.time()), "book": book, "mode": self.venue.mode,
                  "open": fill_in.to_dict(), "closed": closed.to_dict()}
@@ -205,7 +219,7 @@ class Desk:
         """Live market bundle, or a synthetic one when offline (tests)."""
         if self.offline:
             candles = synthetic_candles(self.cfg.history_bars, seed=int(time.time()) % 1000,
-                                        start_price=100.0 if self.cfg.coin == "SOL" else 65_000.0)
+                                        start_price={"SOL": 100.0, "ETH": 2_400.0}.get(self.cfg.coin, 65_000.0))
             return candles, None, None, None
         bundle = fetch_live(self.cfg.instrument, bars=self.cfg.history_bars,
                             record_dir=self.cfg.data_dir)

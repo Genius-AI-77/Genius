@@ -6,6 +6,8 @@ repo: they are read from an env file the server operator writes by hand
 
     DESK_WALLET_KEY   base58 private key of the dedicated Solana desk wallet
                       (venue "solana"). Signs swaps. Pilot money only.
+    DESK_EVM_KEY      0x private key of the Robinhood Chain desk wallet (venue "uniswap").
+                      Receives the token fees and signs the swaps. Fee money only.
     DESK_RPC_URL      optional Solana RPC (a free Helius key is more reliable than public)
     DESK_AGENT_KEY    Hyperliquid agent key (venue "hyperliquid"): trade only, no withdraw
     DESK_ACCOUNT      Hyperliquid master wallet 0x address
@@ -45,7 +47,10 @@ class PublishConfig:
 @dataclass(frozen=True)
 class DeskConfig:
     mode: str = "shadow"                      # shadow | live
-    venue: str = "solana"                     # live venue: solana (spot, long only) | hyperliquid (perps)
+    venue: str = "uniswap"                    # live venue: uniswap (Robinhood Chain spot, long only) | solana | hyperliquid
+    asset: str = "WETH"                       # uniswap: ERC-20 the desk trades (WETH | NVDA), cash is USDG
+    pool_fee: int = 500                       # uniswap: v3 pool fee tier (500 = 0.05 %)
+    fee_token: str = ""                       # uniswap: token the trade fees arrive in, sold to USDG by init-cash
     instrument: str = "SOL-USD"               # data instrument (Coinbase public)
     coin: str = "SOL"                         # asset the desk trades
     hl_books: dict = field(default_factory=dict)   # book name -> sub-account 0x address (public)
@@ -79,6 +84,7 @@ class DeskConfig:
 @dataclass
 class Secrets:
     wallet_key: str | None = None
+    evm_key: str | None = None
     rpc_url: str | None = None
     agent_key: str | None = None
     account: str | None = None
@@ -86,7 +92,7 @@ class Secrets:
     testnet: bool = False
 
     def __repr__(self) -> str:  # never leak
-        return (f"Secrets(wallet_key={'set' if self.wallet_key else 'unset'}, "
+        return (f"Secrets(wallet_key={'set' if self.wallet_key else 'unset'}, evm_key={'set' if self.evm_key else 'unset'}, "
                 f"agent_key={'set' if self.agent_key else 'unset'}, "
                 f"account={'set' if self.account else 'unset'}, "
                 f"git_remote={'set' if self.git_remote else 'unset'}, testnet={self.testnet})")
@@ -105,7 +111,7 @@ class Secrets:
                 k, v = line.split("=", 1)
                 vals[k.strip()] = v.strip().strip('"').strip("'")
         get = lambda k: os.environ.get(k) or vals.get(k)  # noqa: E731
-        return Secrets(wallet_key=get("DESK_WALLET_KEY"), rpc_url=get("DESK_RPC_URL"),
+        return Secrets(wallet_key=get("DESK_WALLET_KEY"), evm_key=get("DESK_EVM_KEY"), rpc_url=get("DESK_RPC_URL"),
                        agent_key=get("DESK_AGENT_KEY"), account=get("DESK_ACCOUNT"),
                        git_remote=get("DESK_GIT_REMOTE"),
                        testnet=str(get("DESK_TESTNET") or "").lower() in ("1", "true", "yes"))

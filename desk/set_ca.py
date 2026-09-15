@@ -5,7 +5,6 @@
     python3 desk/set_ca.py <CONTRACT_ADDRESS> --dry   validate + write only, no git
     python3 desk/set_ca.py --clear                 blank it again
     python3 desk/set_ca.py --fee-wallet 0x...      publish the wallet that receives the fees
-    python3 desk/set_ca.py --desk-wallet <sol>     publish the Solana wallet the desk trades from
 
 Validation: the address must be a 0x address AND be a deployed contract on
 Robinhood Chain (chain id 4663) that answers symbol(), decimals() and
@@ -90,12 +89,7 @@ def main():
         key, ca = "feeWallet", (args[0].strip() if args else "")
         if ca and not re.fullmatch(r"0x[0-9a-fA-F]{40}", ca):
             print(f"REFUSED: '{ca}' is not a 0x address"); return 1
-        msg = "site: publish fee wallet"
-    elif "--desk-wallet" in sys.argv:
-        key, ca = "deskWallet", (args[0].strip() if args else "")
-        if ca and not re.fullmatch(r"[1-9A-HJ-NP-Za-km-z]{32,44}", ca):
-            print(f"REFUSED: '{ca}' is not a Solana address"); return 1
-        msg = "site: publish desk wallet"
+        msg = "site: publish the agents' wallet"
     elif "--clear" in sys.argv:
         ca, msg = "", "site: clear contract address"
     else:

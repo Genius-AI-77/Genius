@@ -77,28 +77,29 @@ def new_wallet() -> int:
     return 0
 
 
-def new_fee_wallet() -> int:
-    """Generate the fee wallet (Robinhood Chain, 0x) ON THIS MACHINE and store its
-    key in the secrets file as FEE_WALLET_KEY. Only the public address is printed.
-    Refuses to overwrite an existing key."""
+def new_evm_wallet() -> int:
+    """Generate the desk wallet for Robinhood Chain (0x) ON THIS MACHINE and store
+    its key in the secrets file as DESK_EVM_KEY. It receives the token fees and
+    HERMES trades from it. Only the public address is printed. Refuses to
+    overwrite an existing key."""
     from eth_account import Account
     path = os.environ.get("DESK_SECRETS_FILE", os.path.expanduser("~/.genius-desk/secrets.env"))
     existing = open(path).read() if os.path.exists(path) else ""
-    if "FEE_WALLET_KEY=" in existing and existing.split("FEE_WALLET_KEY=", 1)[1].split("\n", 1)[0].strip():
+    if "DESK_EVM_KEY=" in existing and existing.split("DESK_EVM_KEY=", 1)[1].split("\n", 1)[0].strip():
         print(f"a fee wallet key already exists in {path}; not overwriting.")
         return 1
     acct = Account.create()
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    lines = [l for l in existing.splitlines() if not l.startswith("FEE_WALLET_KEY=")]
-    lines.append(f"FEE_WALLET_KEY={acct.key.hex()}")
+    lines = [l for l in existing.splitlines() if not l.startswith("DESK_EVM_KEY=")]
+    lines.append(f"DESK_EVM_KEY={acct.key.hex()}")
     with open(path, "w") as f:
         f.write("\n".join(lines) + "\n")
     os.chmod(path, 0o600)
-    print("fee wallet created (Robinhood Chain / any EVM chain).")
+    print("desk wallet created (Robinhood Chain).")
     print(f"  key file : {path}  (mode 600, owner only; never printed)")
     print(f"  address  : {acct.address}")
     print()
-    print("point the token's fee receiver at that address. back the file up somewhere safe.")
+    print("set that address as the token's fee receiver. the desk trades from it. back the file up somewhere safe.")
     return 0
 
 
@@ -113,7 +114,7 @@ def main() -> int:
     g.add_argument("--probe", action="store_true", help="tiny round-trip test trade to prove the wiring")
     g.add_argument("--init-cash", action="store_true", help="solana: convert wallet SOL to USDC and split across books (run once after funding)")
     g.add_argument("--new-wallet", action="store_true", help="solana: create the desk wallet inside the secrets file; prints only the public address")
-    g.add_argument("--new-fee-wallet", action="store_true", help="robinhood chain: create the 0x fee wallet inside the secrets file; prints only the public address")
+    g.add_argument("--new-evm-wallet", action="store_true", help="robinhood chain: create the 0x desk wallet (fees + trading) inside the secrets file; prints only the public address")
     ap.add_argument("--offline", action="store_true", help="synthetic market, no network")
     ap.add_argument("--no-publish", action="store_true")
     ap.add_argument("--config", default=None)
@@ -122,8 +123,8 @@ def main() -> int:
     cfg = DeskConfig.load(args.config)
     if args.new_wallet:
         return new_wallet()
-    if args.new_fee_wallet:
-        return new_fee_wallet()
+    if args.new_evm_wallet:
+        return new_evm_wallet()
     secrets = Secrets.load()
     desk = Desk(cfg, secrets, offline=args.offline)
 
@@ -143,14 +144,14 @@ def main() -> int:
         desk.resume(); print("resumed."); print(status(desk)); return 0
     if args.init_cash:
         if not hasattr(desk.venue, "init_cash"):
-            print("init-cash only applies to the solana venue in live mode"); return 1
+            print("init-cash only applies to the solana and uniswap venues in live mode"); return 1
         r = desk.venue.init_cash(); desk.save()
         print(json.dumps(r, indent=1)); print(status(desk)); after(desk, {"bar": "init"}); return 0
     if args.probe:
         r = desk.probe()
         print(json.dumps(r, indent=1))
         if r.get("tx_open"):
-            base = "https://solscan.io/tx/" if cfg.venue == "solana" else "https://app.hyperliquid.xyz/explorer/tx/"
+            base = {"uniswap": "https://robinhoodchain.blockscout.com/tx/", "solana": "https://solscan.io/tx/"}.get(cfg.venue, "https://app.hyperliquid.xyz/explorer/tx/")
             print(f"\nopen : {base}{r['tx_open']}\nclose: {base}{r['tx_close']}")
         after(desk, {"bar": "probe"}); return 0 if r.get("ok") else 1
     if args.once:

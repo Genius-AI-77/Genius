@@ -1,12 +1,12 @@
 {
   "mode": "live",
-  "instrument": "SOL-USD",
+  "instrument": "ETH-USD",
   "bar_seconds": 3600,
   "warmup_bars": 60,
   "history_bars": 200,
   "max_holding_bars": 24,
-  "order_step": 0.0001,
-  "min_order": 0.01,
+  "order_step": 1e-06,
+  "min_order": 0.0004,
   "limits": "PILOT_100",
   "starting_cash_per_book": 33.33,
   "books": [
@@ -34,11 +34,14 @@
     "git_push": true,
     "git_branch": "main"
   },
-  "coin": "SOL",
+  "coin": "ETH",
   "hl_books": {
     "ATLAS": "",
     "EUCLID": "",
     "FLUX": ""
   },
-  "venue": "solana"
+  "venue": "uniswap",
+  "asset": "WETH",
+  "pool_fee": 500,
+  "fee_token": ""
 }
