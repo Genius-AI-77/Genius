@@ -11,7 +11,7 @@ import { GMark, H2, Hi, Kicker, Mod, Section, Wrap } from "./ui";
 import { Pill } from "./ui";
 import { AgentIcon } from "./AgentIcon";
 import { WalletCard } from "./Wallet";
-import { CACard } from "./TokenCA";
+import { CACard, hasToken } from "./TokenCA";
 
 /* ------------------------------------------------------------------ 01 */
 
@@ -464,7 +464,7 @@ export function Connect() {
 export function Challenge() {
   return (
     <Section id="challenge">
-      <Kicker num="08" label="The Challenge" />
+      <Kicker num={hasToken() ? "09" : "08"} label="The Challenge" />
       <H2>
         The <Hi>33-Day</Hi> Challenge.
       </H2>

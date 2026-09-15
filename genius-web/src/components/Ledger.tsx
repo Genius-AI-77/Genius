@@ -1,10 +1,11 @@
 import { disclaimer, ledgerRows, navLinks } from "../data/content";
+import { hasToken } from "./TokenCA";
 import { GMark, H2, Hi, Kicker, Pill, Section, Wrap } from "./ui";
 
 export function Ledger() {
   return (
     <Section id="ledger">
-      <Kicker num="09" label="Build Log" />
+      <Kicker num={hasToken() ? "10" : "09"} label="Build Log" />
       <H2>
         Where the <Hi>build</Hi> is.
       </H2>
@@ -82,6 +83,11 @@ export function Footer() {
               <li className="mb-[11px]">
                 <a href="/console/" className="text-ink-2 no-underline transition-colors hover:text-volt">
                   Lab console
+                </a>
+              </li>
+              <li className="mb-[11px]">
+                <a href="https://x.com/geniusproto" target="_blank" rel="noopener noreferrer" className="text-ink-2 no-underline transition-colors hover:text-volt">
+                  @geniusproto on X
                 </a>
               </li>
             </ul>

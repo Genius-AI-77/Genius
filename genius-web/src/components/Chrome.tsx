@@ -1,7 +1,7 @@
 import { navLinks, tickerItems } from "../data/content";
 import { GMark, Wrap } from "./ui";
 import { WalletButton } from "./Wallet";
-import { CAChip } from "./TokenCA";
+import { CAChip, hasToken } from "./TokenCA";
 
 /** Fixed studio backdrop: volt haze, floor grid, cyan light bars. */
 export function Stage() {
@@ -64,7 +64,17 @@ export function Nav() {
               <span className="absolute -bottom-1.5 left-0 h-px w-0 bg-volt transition-all duration-200 group-hover:w-full" />
             </a>
           ))}
+          {hasToken() && (
+            <a href="#token" className="group relative text-ink-3 no-underline transition-colors hover:text-volt">
+              Token
+              <span className="absolute -bottom-1.5 left-0 h-px w-0 bg-volt transition-all duration-200 group-hover:w-full" />
+            </a>
+          )}
         </nav>
+        <a href="https://x.com/geniusproto" target="_blank" rel="noopener noreferrer" title="GENIUS on X"
+          className="ml-[18px] inline-flex h-[34px] w-[34px] flex-none items-center justify-center rounded border border-line-2 text-ink-2 transition-all hover:border-volt hover:text-volt hover:shadow-volt-soft">
+          <svg viewBox="0 0 24 24" className="h-[14px] w-[14px] fill-current" aria-label="X"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </a>
         <CAChip />
         <WalletButton />
       </Wrap>

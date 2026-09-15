@@ -76,9 +76,15 @@ a{color:inherit}
 .nav nav a::after{content:"";position:absolute;left:0;right:100%;bottom:-6px;height:1px;
                   background:var(--volt);transition:right .22s}
 .nav nav a:hover::after{right:0}
-@media(max-width:1000px){.nav nav a:nth-child(n+6){display:none}}
+@media(max-width:1000px){.nav nav a.nav-m{display:none}}
+@media(max-width:640px){.nav nav a.nav-s{display:none}}
+.xlink{margin-left:18px;flex:none;display:inline-flex;width:34px;height:34px;align-items:center;justify-content:center;
+  border-radius:4px;border:1px solid var(--line-2);color:var(--ink-2);transition:.16s}
+.xlink svg{width:14px;height:14px;fill:currentColor}
+.xlink:hover{border-color:var(--volt);color:var(--volt);box-shadow:0 0 22px -6px var(--volt-glow)}
 @media(max-width:880px){.nav nav a:nth-child(n+4){display:none}}
-@media(max-width:520px){.nav nav a:nth-child(n+3){display:none}}
+@media(max-width:520px){.nav nav{display:none}.nav .wrap{gap:8px}.logo span{display:none}
+  .xlink,.cachip,.wbtn{margin-left:0}.wbtn{margin-left:auto;padding:9px 10px;letter-spacing:.08em}.cachip{padding:8px 9px}}
 
 /* ---------- contract address ---------- */
 .cachip{margin-left:18px;flex:none;display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;
@@ -104,13 +110,28 @@ a{color:inherit}
 .cacard-link:hover{color:var(--volt);border-color:var(--volt)}
 .cacard-note{margin-top:12px;font:400 11.5px/1.6 var(--mono);color:var(--ink-3)}
 
+.tok-card{margin-top:36px;border:1px solid rgba(166,226,46,.35);border-radius:8px;overflow:hidden;
+  background:linear-gradient(160deg,rgba(166,226,46,.07),rgba(166,226,46,.015));box-shadow:0 0 40px -18px var(--volt-glow)}
+.tok-row{display:flex;align-items:center;gap:16px;padding:20px 22px;border-top:1px solid rgba(166,226,46,.18)}
+.tok-row:first-child{border-top:0}
+.tok-k{flex:none;width:150px;font:500 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.tok-v{flex:1;min-width:0;font:500 14px var(--mono);color:var(--ink);word-break:break-all}
+.tok-v.big{font:800 20px var(--disp);color:var(--volt)}
+.tok-links{display:flex;flex-wrap:wrap;gap:16px}
+@media(max-width:640px){.tok-row{flex-wrap:wrap}.tok-k{width:100%}}
+.tok-grid{display:grid;gap:14px;margin-top:14px;grid-template-columns:1fr}
+@media(min-width:860px){.tok-grid{grid-template-columns:1fr 1fr}}
+.tok-grid .mod{margin-top:0}
+.tok-foot{margin-top:24px;font:400 12.5px/1.8 var(--mono);color:var(--ink-3)}
+.tok-foot a{color:var(--ink-2)}
+
 /* ---------- wallet ---------- */
 .wbtn{margin-left:18px;flex:none;padding:9px 14px;border-radius:4px;cursor:pointer;
       border:1px solid var(--line-2);background:transparent;color:var(--ink);
       font:600 10.5px var(--mono);letter-spacing:.13em;text-transform:uppercase;transition:.16s}
 .wbtn:hover{border-color:var(--volt);color:var(--volt);box-shadow:0 0 22px -6px var(--volt-glow)}
 .wbtn.connected{border-color:var(--volt);color:var(--volt);text-transform:none;letter-spacing:.04em}
-@media(max-width:520px){.wbtn{margin-left:auto}}
+
 .wpanel{position:absolute;right:var(--gut);top:70px;width:min(400px,calc(100vw - 2*var(--gut)));
         z-index:70;border:1px solid var(--line-2);border-radius:8px;padding:18px;
         background:linear-gradient(160deg,var(--panel-2),var(--panel) 55%,#0a0d0f);
@@ -426,9 +447,10 @@ footer a:hover{color:var(--volt)}
   <a class="logo" href="#top"><svg><use href="#gmark"/></svg><span>GENIUS</span></a>
   <nav>
     <a href="#machine">Machine</a><a href="#agents">Agents</a><a href="#method">Method</a>
-    <a href="#veto">Veto</a><a href="#desk">Desk</a><a href="#connect">Connect</a>
-    <a href="#ledger">Build log</a>
+    <a href="#veto" class="nav-s">Veto</a><a href="#desk">Desk</a><a href="#connect" class="nav-m">Connect</a>
+    <a href="#ledger" class="nav-m">Build log</a><a href="#token" id="nav-token" hidden>Token</a>
   </nav>
+  <a class="xlink" href="https://x.com/geniusproto" target="_blank" rel="noopener noreferrer" title="GENIUS on X"><svg viewBox="0 0 24 24" aria-label="X"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
   <button id="ca-chip" class="cachip" type="button" hidden title="Copy contract address"><b>CA</b><span></span></button>
   <button id="wallet-btn" class="wbtn" type="button">Connect wallet</button>
   <div id="wallet-panel" class="wpanel" hidden></div>
@@ -718,9 +740,64 @@ footer a:hover{color:var(--volt)}
   </div>
 </div></section>
 
-<!-- 08 -->
+<!-- 08 (shown once the contract address is set in ca.js) -->
+<section id="token" hidden><div class="wrap">
+  <div class="kicker"><b>08</b> / The Token</div>
+  <h2>One <em>address</em>. Check it here.</h2>
+  <p class="dek">$GENIUS is out on Solana. This section is the only place we publish the contract
+    address. If you see a different one anywhere else, in a reply, in a group chat, on an account
+    that looks like ours, it is not ours. Come back here and compare.</p>
+
+  <div class="tok-card">
+    <div class="tok-row">
+      <div class="tok-k">Contract address</div>
+      <div class="tok-v" id="tok-addr"></div>
+      <button class="cacard-copy" type="button" data-act="copy-ca">Copy</button>
+    </div>
+    <div class="tok-row"><div class="tok-k">Ticker</div><div class="tok-v big" id="tok-ticker">$GENIUS</div></div>
+    <div class="tok-row"><div class="tok-k">Chain</div><div class="tok-v">Solana</div></div>
+    <div class="tok-row"><div class="tok-k">Verify</div><div class="tok-v tok-links cacard-links">
+      <a class="cacard-link" data-link="solscan" target="_blank" rel="noopener noreferrer">Solscan</a>
+      <a class="cacard-link" data-link="dexscreener" target="_blank" rel="noopener noreferrer">Chart</a>
+      <a class="cacard-link" data-link="jupiter" target="_blank" rel="noopener noreferrer">Swap on Jupiter</a>
+      <a class="cacard-link" href="https://x.com/geniusproto" target="_blank" rel="noopener noreferrer">@geniusproto on X</a>
+    </div></div>
+  </div>
+
+  <div class="tok-grid">
+    <div class="mod pair">
+      <h5>What the token is for</h5>
+      <p>GENIUS is a lab that trades in public. The token is how the build gets funded: the desk that
+        runs today, the compute that comes next, and the road to the 33 machines. Holding it is a way
+        to back the work and to be early to it. It is not a claim on the hardware, the desk wallet or
+        the code, and we will never say it is.</p>
+    </div>
+    <div class="mod pair">
+      <h5>How to know it is real</h5>
+      <p>Copy the address from this page. Open it on Solscan. Compare every character with what is
+        in your wallet or on the chart someone sent you. Nothing else counts. We will never message
+        you an address, never ask you to send funds to one, and never run a claim or a mint.</p>
+    </div>
+    <div class="mod pair">
+      <h5>What we publish</h5>
+      <p>Every trade the desk takes is on chain, from a wallet that signs nothing else. The console
+        shows the books, the equity curve and the audit report, and a losing day goes up at the same
+        size as a winning one. That is the whole point of doing this in the open.</p>
+    </div>
+    <div class="mod pair">
+      <h5>Read before you act</h5>
+      <p>Nothing on this page is financial advice. The token is early, the market is volatile, and
+        the desk can lose money on any given day. Only put in what you are fine watching move.
+        Questions go to <a href="https://x.com/geniusproto" target="_blank" rel="noopener noreferrer">@geniusproto</a>.</p>
+    </div>
+  </div>
+  <!-- TODO before drop, if the facts are final: a "Fees" mod (fee %, where it goes, proof link)
+       and a "Team wallet" mod (lock tool, duration, address). Ask the boss; do not guess. -->
+</div></section>
+
+<!-- 09 -->
 <section id="challenge"><div class="wrap">
-  <div class="kicker"><b>08</b> / The Challenge</div>
+  <div class="kicker"><b data-n="08">08</b> / The Challenge</div>
   <h2>The <em>33-Day</em> Challenge.</h2>
   <p class="dek">Thirty-three consecutive sessions. One public report per day: the hypothesis, what
     the agents said, what the risk engine did, and the result after costs: win, loss, or nothing
@@ -737,7 +814,7 @@ footer a:hover{color:var(--volt)}
 
 <!-- 09 -->
 <section id="ledger"><div class="wrap">
-  <div class="kicker"><b>09</b> / Build Log</div>
+  <div class="kicker"><b data-n="09">09</b> / Build Log</div>
   <h2>Where the <em>build</em> is.</h2>
   <p class="dek">Every piece of GENIUS, and its current state. Updated as things go live.</p>
   <div class="tbl" style="margin-top:36px"><table>
@@ -778,6 +855,7 @@ footer a:hover{color:var(--volt)}
       <li><a href="#machine">The machine</a></li><li><a href="#agents">Six agents</a></li>
       <li><a href="#veto">The veto</a></li><li><a href="#desk">The desk</a></li>
       <li><a href="console/">Lab console</a></li>
+      <li><a href="https://x.com/geniusproto" target="_blank" rel="noopener noreferrer">@geniusproto on X</a></li>
     </ul></div>
     <div><h6>Build log key</h6><ul>
       <li><span class="pill p-impl">Live</span> running today</li>

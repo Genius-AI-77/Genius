@@ -10,6 +10,7 @@ import {
   Veto,
 } from "./components/Sections";
 import { Footer, Ledger } from "./components/Ledger";
+import { TokenSection } from "./components/TokenCA";
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
       <Veto />
       <Desk />
       <Connect />
+      <TokenSection />
       <Challenge />
       <Ledger />
       <Footer />

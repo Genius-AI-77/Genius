@@ -60,6 +60,19 @@ document.querySelectorAll('[data-open-wallet]').forEach(function(b){
     card.hidden=false;
     var b=card.querySelector('[data-act=copy-ca]'); b.addEventListener('click',function(){ copy(ca, b, 'Copy'); });
   }
+  var sec=document.getElementById('token'), tab=document.getElementById('nav-token');
+  if(sec){
+    sec.querySelector('#tok-addr').textContent=ca;
+    sec.querySelector('#tok-ticker').textContent=T.ticker||'$GENIUS';
+    sec.querySelector('[data-link=solscan]').href='https://solscan.io/token/'+encodeURIComponent(ca);
+    sec.querySelector('[data-link=dexscreener]').href='https://dexscreener.com/solana/'+encodeURIComponent(ca);
+    sec.querySelector('[data-link=jupiter]').href='https://jup.ag/swap/SOL-'+encodeURIComponent(ca);
+    var b2=sec.querySelector('[data-act=copy-ca]'); b2.addEventListener('click',function(){ copy(ca, b2, 'Copy'); });
+    sec.hidden=false;
+    // sections after it shift one number down the page
+    Array.prototype.forEach.call(document.querySelectorAll('.kicker b[data-n]'),function(el){ el.textContent=String(parseInt(el.getAttribute('data-n'),10)+1).padStart(2,'0'); });
+  }
+  if(tab) tab.hidden=false;
   function copy(text, el, restore){
     if(!navigator.clipboard) return;
     navigator.clipboard.writeText(text).then(function(){ var was=el.textContent; el.textContent='Copied'; setTimeout(function(){ el.textContent=restore||was; },1200); });
