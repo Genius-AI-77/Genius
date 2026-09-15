@@ -44,6 +44,39 @@ def status(desk: Desk) -> str:
     return "\n".join(lines)
 
 
+def new_wallet() -> int:
+    """Generate the desk wallet ON THIS MACHINE and store its key in the secrets
+    file with owner-only permissions. Nothing but the public address is printed.
+    Refuses to overwrite an existing key."""
+    from solders.keypair import Keypair
+    path = os.environ.get("DESK_SECRETS_FILE", os.path.expanduser("~/.genius-desk/secrets.env"))
+    existing = ""
+    if os.path.exists(path):
+        existing = open(path).read()
+        if "DESK_WALLET_KEY=" in existing and existing.split("DESK_WALLET_KEY=", 1)[1].split("\n", 1)[0].strip():
+            print(f"a wallet key already exists in {path}; not overwriting.")
+            print("if you really want a new one, delete that file first.")
+            return 1
+    kp = Keypair()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    try:
+        os.chmod(os.path.dirname(path), 0o700)
+    except PermissionError:
+        pass   # shared dirs like /tmp; the file itself is still mode 600
+    lines = [l for l in existing.splitlines() if not l.startswith("DESK_WALLET_KEY=")]
+    lines.append(f"DESK_WALLET_KEY={kp}")
+    with open(path, "w") as f:
+        f.write("\n".join(lines) + "\n")
+    os.chmod(path, 0o600)
+    print("desk wallet created.")
+    print(f"  key file : {path}  (mode 600, owner only; never printed)")
+    print(f"  address  : {kp.pubkey()}")
+    print()
+    print("send the pilot SOL to that address. this wallet exists only in that file:")
+    print("back the file up somewhere safe if you want to be able to recover the funds.")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     g = ap.add_mutually_exclusive_group(required=True)
@@ -54,12 +87,15 @@ def main() -> int:
     g.add_argument("--resume", action="store_true")
     g.add_argument("--probe", action="store_true", help="tiny round-trip test trade to prove the wiring")
     g.add_argument("--init-cash", action="store_true", help="solana: convert wallet SOL to USDC and split across books (run once after funding)")
+    g.add_argument("--new-wallet", action="store_true", help="solana: create the desk wallet inside the secrets file; prints only the public address")
     ap.add_argument("--offline", action="store_true", help="synthetic market, no network")
     ap.add_argument("--no-publish", action="store_true")
     ap.add_argument("--config", default=None)
     args = ap.parse_args()
 
     cfg = DeskConfig.load(args.config)
+    if args.new_wallet:
+        return new_wallet()
     secrets = Secrets.load()
     desk = Desk(cfg, secrets, offline=args.offline)
 

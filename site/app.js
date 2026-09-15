@@ -44,3 +44,24 @@ for(var d=1;d<=33;d++){
 document.querySelectorAll('[data-open-wallet]').forEach(function(b){
   b.addEventListener('click', function(){ var w=document.getElementById('wallet-btn'); if(w){ w.click(); w.scrollIntoView({block:'nearest'}); } });
 });
+
+(function(){
+  var T=window.GENIUS_TOKEN; if(!T||!T.ca) return;
+  var ca=T.ca, short=ca.slice(0,4)+'\u2026'+ca.slice(-4);
+  var chip=document.getElementById('ca-chip'), card=document.getElementById('ca-card');
+  if(chip){ chip.querySelector('span').textContent=short; chip.hidden=false;
+    chip.addEventListener('click',function(){ copy(ca, chip.querySelector('span'), short); }); }
+  if(card){
+    card.querySelector('.cacard-t').textContent=T.ticker||'$GENIUS';
+    card.querySelector('.cacard-addr').textContent=ca;
+    card.querySelector('[data-link=solscan]').href='https://solscan.io/token/'+encodeURIComponent(ca);
+    card.querySelector('[data-link=dexscreener]').href='https://dexscreener.com/solana/'+encodeURIComponent(ca);
+    card.querySelector('[data-link=jupiter]').href='https://jup.ag/swap/SOL-'+encodeURIComponent(ca);
+    card.hidden=false;
+    var b=card.querySelector('[data-act=copy-ca]'); b.addEventListener('click',function(){ copy(ca, b, 'Copy'); });
+  }
+  function copy(text, el, restore){
+    if(!navigator.clipboard) return;
+    navigator.clipboard.writeText(text).then(function(){ var was=el.textContent; el.textContent='Copied'; setTimeout(function(){ el.textContent=restore||was; },1200); });
+  }
+})();

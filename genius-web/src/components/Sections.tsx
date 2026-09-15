@@ -11,6 +11,7 @@ import { GMark, H2, Hi, Kicker, Mod, Section, Wrap } from "./ui";
 import { Pill } from "./ui";
 import { AgentIcon } from "./AgentIcon";
 import { WalletCard } from "./Wallet";
+import { CACard } from "./TokenCA";
 
 /* ------------------------------------------------------------------ 01 */
 
@@ -57,6 +58,7 @@ export function Hero() {
             Meet the six
           </a>
         </div>
+        <CACard />
       </Wrap>
     </header>
   );

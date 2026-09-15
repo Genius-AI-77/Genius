@@ -1,5 +1,5 @@
 {
-  "mode": "shadow",
+  "mode": "live",
   "instrument": "SOL-USD",
   "bar_seconds": 3600,
   "warmup_bars": 60,
@@ -31,7 +31,7 @@
       "site/console/data.js",
       "genius-web/public/console/data.js"
     ],
-    "git_push": false,
+    "git_push": true,
     "git_branch": "main"
   },
   "coin": "SOL",

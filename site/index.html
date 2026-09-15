@@ -71,13 +71,38 @@ a{color:inherit}
 .logo span{font:800 20px/1 var(--disp);letter-spacing:.16em;color:var(--ink)}
 .nav nav{margin-left:auto;display:flex;gap:26px;
          font:500 11px var(--mono);letter-spacing:.13em;text-transform:uppercase}
-.nav nav a{text-decoration:none;color:var(--ink-3);transition:color .16s;position:relative}
+.nav nav a{text-decoration:none;color:var(--ink-3);transition:color .16s;position:relative;white-space:nowrap}
 .nav nav a:hover{color:var(--volt)}
 .nav nav a::after{content:"";position:absolute;left:0;right:100%;bottom:-6px;height:1px;
                   background:var(--volt);transition:right .22s}
 .nav nav a:hover::after{right:0}
+@media(max-width:1000px){.nav nav a:nth-child(n+6){display:none}}
 @media(max-width:880px){.nav nav a:nth-child(n+4){display:none}}
 @media(max-width:520px){.nav nav a:nth-child(n+3){display:none}}
+
+/* ---------- contract address ---------- */
+.cachip{margin-left:18px;flex:none;display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;
+  cursor:pointer;border:1px solid rgba(166,226,46,.45);background:rgba(166,226,46,.08);color:var(--volt);
+  font:500 10.5px var(--mono);letter-spacing:.06em;transition:.16s}
+.cachip b{font-weight:700;letter-spacing:.14em}
+.cachip:hover{background:rgba(166,226,46,.16);box-shadow:0 0 18px -6px var(--volt-glow)}
+@media(max-width:640px){.cachip span{display:none}}
+.cacard{margin:clamp(30px,4vw,44px) auto 0;max-width:640px;text-align:left;border:1px solid rgba(166,226,46,.35);
+  border-radius:8px;padding:18px 20px;background:linear-gradient(160deg,rgba(166,226,46,.08),rgba(166,226,46,.02));
+  box-shadow:0 0 40px -18px var(--volt-glow)}
+.cacard-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.cacard-t{font:800 18px var(--disp);color:var(--volt);letter-spacing:-.01em}
+.cacard-chain{font:500 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.cacard-row{display:flex;gap:8px;align-items:center}
+.cacard-addr{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:10px 12px;border-radius:5px;
+  border:1px solid var(--line-2);background:#0b0f11;color:var(--ink);font:500 12.5px var(--mono)}
+.cacard-copy{flex:none;padding:10px 14px;border-radius:5px;border:1px solid var(--volt);background:var(--volt);color:#07130a;
+  font:600 10.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+.cacard-copy:hover{box-shadow:0 0 22px -4px var(--volt-glow)}
+.cacard-links{display:flex;gap:16px;margin-top:12px;font:500 10.5px var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.cacard-link{color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--line-2)}
+.cacard-link:hover{color:var(--volt);border-color:var(--volt)}
+.cacard-note{margin-top:12px;font:400 11.5px/1.6 var(--mono);color:var(--ink-3)}
 
 /* ---------- wallet ---------- */
 .wbtn{margin-left:18px;flex:none;padding:9px 14px;border-radius:4px;cursor:pointer;
@@ -404,6 +429,7 @@ footer a:hover{color:var(--volt)}
     <a href="#veto">Veto</a><a href="#desk">Desk</a><a href="#connect">Connect</a>
     <a href="#ledger">Build log</a>
   </nav>
+  <button id="ca-chip" class="cachip" type="button" hidden title="Copy contract address"><b>CA</b><span></span></button>
   <button id="wallet-btn" class="wbtn" type="button">Connect wallet</button>
   <div id="wallet-panel" class="wpanel" hidden></div>
 </div></div>
@@ -429,6 +455,19 @@ footer a:hover{color:var(--volt)}
   <div class="cta">
     <a class="btn solid" href="#desk">Watch the desk live</a>
     <a class="btn ghost" href="#agents">Meet the six</a>
+  </div>
+  <div id="ca-card" class="cacard" hidden>
+    <div class="cacard-h"><span class="cacard-t"></span><span class="cacard-chain">Solana · contract address</span></div>
+    <div class="cacard-row">
+      <code class="cacard-addr"></code>
+      <button type="button" class="cacard-copy" data-act="copy-ca">Copy</button>
+    </div>
+    <div class="cacard-links">
+      <a class="cacard-link" data-link="solscan" target="_blank" rel="noopener noreferrer">Solscan</a>
+      <a class="cacard-link" data-link="dexscreener" target="_blank" rel="noopener noreferrer">Chart</a>
+      <a class="cacard-link" data-link="jupiter" target="_blank" rel="noopener noreferrer">Swap on Jupiter</a>
+    </div>
+    <p class="cacard-note">This is the only official contract address. Verify it here before you trust it anywhere else.</p>
   </div>
 </div></header>
 
@@ -750,6 +789,7 @@ footer a:hover{color:var(--volt)}
 </div></footer>
 
 <script src="console/data.js"></script>
+<script src="ca.js"></script>
 <script src="app.js" defer></script>
 <script src="wallet.js" defer></script>
 <script src="floor.js" defer></script>

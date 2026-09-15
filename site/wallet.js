@@ -29,7 +29,7 @@
   /* ---------------------------------------------------------- discovery */
 
   var wallets = {};            // name → normalised adapter
-  var state = { adapter: null, address: null, pubkey: null, balance: null,
+  var state = { adapter: null, address: null, pubkey: null, balance: null, token: undefined,
                 verified: null, busy: false, error: null };
 
   function registerStandard(w) {
@@ -131,6 +131,18 @@
       .catch(function () { return null; });
   }
 
+  function fetchTokenBalance(address, mint) {
+    return fetch(RPC, { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'getTokenAccountsByOwner',
+        params: [address, { mint: mint }, { encoding: 'jsonParsed' }] }) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var total = 0; ((j.result || {}).value || []).forEach(function (a) {
+          total += Number(a.account.data.parsed.info.tokenAmount.uiAmount || 0); });
+        return total; })
+      .catch(function () { return null; });
+  }
+
   function fetchBalance(address) {
     return fetch(RPC, { method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getBalance', params: [address] }) })
@@ -150,6 +162,8 @@
       try { localStorage.setItem(LS_KEY, name); } catch (e) {}
       a.onChange(function () { disconnect(true); });
       render();
+      var T = window.GENIUS_TOKEN;
+      if (T && T.ca) fetchTokenBalance(r.address, T.ca).then(function (b) { state.token = b; render(); });
       return fetchBalance(r.address).then(function (b) { state.balance = b; render(); });
     }).catch(function (e) {
       if (!silent) state.error = (e && e.message) || 'Connection rejected';
@@ -201,6 +215,10 @@
            esc(short(state.address)) + '</code></div>';
       h += '<div class="wp-row"><span>SOL balance</span><b>' +
            (state.balance === null ? '…' : esc(state.balance.toFixed(4)) + ' SOL') + '</b></div>';
+      var T2 = window.GENIUS_TOKEN;
+      if (T2 && T2.ca) h += '<div class="wp-row"><span>' + esc(T2.ticker || '$GENIUS') + '</span><b>' +
+           (state.token === undefined ? '\u2026' : state.token === null ? '<span class="wp-dim">unavailable</span>' :
+            esc(Number(state.token).toLocaleString('en-US', { maximumFractionDigits: 2 }))) + '</b></div>';
       h += '<div class="wp-row"><span>Ownership</span><b>' +
            (state.verified === 'yes' ? '<span class="wp-ok">Verified ✓</span>' :
             state.verified === 'no' ? '<span class="wp-bad">Signature did not verify</span>' :

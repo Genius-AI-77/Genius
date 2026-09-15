@@ -1,6 +1,7 @@
 import { navLinks, tickerItems } from "../data/content";
 import { GMark, Wrap } from "./ui";
 import { WalletButton } from "./Wallet";
+import { CAChip } from "./TokenCA";
 
 /** Fixed studio backdrop: volt haze, floor grid, cyan light bars. */
 export function Stage() {
@@ -64,6 +65,7 @@ export function Nav() {
             </a>
           ))}
         </nav>
+        <CAChip />
         <WalletButton />
       </Wrap>
     </div>
