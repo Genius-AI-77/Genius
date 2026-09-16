@@ -1,4 +1,6 @@
-# GENIUS — Product & Architecture
+# GENIUS: Product & Architecture
+
+> **Planning record.** Written in September 2026 before the venue was chosen. Kept as the history of how the decisions were made. The current setup (Robinhood Chain, Uniswap, one wallet) is in `README.md` and `desk/README.md`.
 
 ## 1. What the product actually is
 
@@ -10,20 +12,20 @@ Everything else is a layer around that core.
 | Layer | Purpose | Depends on |
 |---|---|---|
 | **Research engine** | Forms hypotheses, tests them, records the outcome after costs | Data, compute |
-| **Risk envelope** | Makes failure survivable and bounded | Nothing — it's arithmetic |
+| **Risk envelope** | Makes failure survivable and bounded | Nothing: it's arithmetic |
 | **Public record** | Turns the engine's output into something people can read and check | The engine |
 | **Community / token** | Distributes attention and coordination around the public record | The public record being real |
 
 The order matters. The token is downstream of the public record, which is downstream of the
 engine. A token launched before there is anything to report is a different product with a
-different risk profile — and it is the failure mode this architecture is designed to avoid.
+different risk profile, and it is the failure mode this architecture is designed to avoid.
 
 ### What is validated today
 
 - A six-role agent pipeline produces different, non-redundant analyses of the same bar.
 - Hard risk limits, enforced in code, hold across 792 consecutive cycles with zero breaches
   (proven by the test suite, not asserted).
-- "No trade" as a first-class outcome is achievable — 287 of 792 cycles, or 36%.
+- "No trade" as a first-class outcome is achievable, 287 of 792 cycles, or 36%.
 - After-cost accounting materially changes the picture: costs were $640 against a $2,742
   loss, i.e. 23% of the damage was friction, not being wrong.
 
@@ -31,8 +33,8 @@ different risk profile — and it is the failure mode this architecture is desig
 
 | Claim | Status | What would validate it |
 |---|---|---|
-| The strategy has positive edge | **Unproven — currently negative** | Walk-forward on real data across regimes |
-| 33 DGX Sparks are the right architecture | **Unproven** | Benchmark 1–2 units against the actual workload |
+| The strategy has positive edge | **Unproven, currently negative** | Walk-forward on real data across regimes |
+| 33 DGX Sparks are the right architecture | **Unproven** | Benchmark 1 to 2 units against the actual workload |
 | 33 units act as one supercomputer | **Probably false as stated** | See §4 |
 | Six roles need six models | **Probably false** | Ablation: one model, six prompts vs. six models |
 | Order flow gives edge on our chosen market | **Unproven** | See `DATA-AND-ORDERFLOW.md` |
@@ -75,7 +77,7 @@ data.
               └───────┬───────┘
                       ▼
               ┌───────────────┐
-              │    LEDGER     │  journals the cycle — trade or not — and scores it
+              │    LEDGER     │  journals the cycle, trade or not, and scores it
               └───────────────┘
 ```
 
@@ -96,12 +98,12 @@ twenty lines, it is deterministic, and it can be argued about.
 This is the architectural claim the whole project rests on, so it is worth stating precisely:
 
 > **A language model can propose a direction and a level. It can never propose a size, relax
-> a limit, or overrule a rejection — because no code path exists that would accept such an
+> a limit, or overrule a rejection, because no code path exists that would accept such an
 > instruction.**
 
 Position size is *derived*: `qty = (equity × max_risk) / distance_to_invalidation`. No agent
 submits a quantity, so no agent can inflate one. The engine's public API has no `override`,
-`force`, or `bypass` — and a test asserts that it never grows one.
+`force`, or `bypass`, and a test asserts that it never grows one.
 
 This is not a prompt-engineering pattern. There is nothing to jailbreak, because there is
 nothing listening.
@@ -117,7 +119,7 @@ the risk verdict. A no-trade cycle is as fully recorded as a trade. This means:
 
 ---
 
-## 3. The six agents — contracts
+## 3. The six agents: contracts
 
 Each agent implements one method, `analyze(context) → AgentReport`, and is scored on one
 question. The uniform contract is what lets roles be swapped, ablated, or run on different
@@ -125,49 +127,49 @@ hardware without touching the orchestrator.
 
 | Field | Meaning |
 |---|---|
-| `stance` | `long` \| `short` \| `flat` — `flat` is a real answer |
-| `confidence` | 0–1, advisory only; the engine has a floor, not a multiplier |
+| `stance` | `long` \| `short` \| `flat`, `flat` is a real answer |
+| `confidence` | 0 to 1, advisory only; the engine has a floor, not a multiplier |
 | `findings` | Human-readable, source-attributed where applicable |
 | `invalidation` | Price that voids the thesis. **Only EUCLID sets this.** |
 | `data` | Structured numbers backing the findings |
-| `status` | `IMPLEMENTED` \| `SIMULATED` — surfaced in the UI |
+| `status` | `IMPLEMENTED` \| `SIMULATED`, surfaced in the UI |
 
-### ATLAS — Fundamental Analyst
+### ATLAS: Fundamental Analyst
 - **In:** news, macro calendar, filings, asset-level events
 - **Out:** directional bias with cited events, each carrying a source and a date
 - **Scored on:** bias vs. forward return; unsourced claims are counted as errors
-- **Today:** `SIMULATED` — fixture events. A licensed feed is the first real dependency.
+- **Today:** `SIMULATED`, fixture events. A licensed feed is the first real dependency.
 
-### EUCLID — Technical Analyst
+### EUCLID: Technical Analyst
 - **In:** OHLCV history
 - **Out:** trend classification, swing levels, RSI/SMA context, and **the invalidation price**
 - **Scored on:** level hit rate; how often price actually respected the stated invalidation
 - **Note:** EUCLID owns invalidation because position size is derived from it. This makes
   EUCLID's accuracy directly load-bearing on risk, which is why it is scored separately.
 
-### FLUX — Order Flow Analyst
+### FLUX: Order Flow Analyst
 - **In:** trades with aggressor side, volume-by-price, L2 depth *(depth is `PLANNED`)*
 - **Out:** cumulative delta across two horizons, volume point of control, absorption candidates
 - **Scored on:** flow signal vs. next-bar continuation
 - **Honest limitation:** without true L2 depth, "absorption" is inferred from volume-with-
   compressed-range, which is a proxy, not the real thing. See `DATA-AND-ORDERFLOW.md`.
 
-### VETO — Risk Manager *(binding)*
+### VETO: Risk Manager *(binding)*
 - **In:** proposal, equity, open risk, session P&L, loss streak
 - **Out:** `APPROVE(qty, stop)` or `REJECT(reason)`
 - **Scored on:** limit breaches. Target is zero. Any non-zero value is an incident, not a metric.
 
-### HERMES — Execution Specialist
+### HERMES: Execution Specialist
 - **In:** approved order, book conditions
 - **Out:** fills with fees and slippage charged against the decision price
-- **Scored on:** realised slippage vs. decision price — the cost of being right
+- **Scored on:** realised slippage vs. decision price, the cost of being right
 
-### LEDGER — Research & Audit Analyst
+### LEDGER: Research & Audit Analyst
 - **In:** the full journal, fills, outcomes
 - **Out:** after-cost expectancy, win rate, drawdown, and degradation flags
 - **Scored on:** did it flag decay before the equity curve made it obvious?
 - **Authority:** LEDGER cannot block a trade, but its flag is published. Social pressure is
-  the enforcement mechanism, and that is intentional — an audit function that can act is no
+  the enforcement mechanism, and that is intentional, an audit function that can act is no
   longer an audit function.
 
 ---
@@ -177,7 +179,7 @@ hardware without touching the orchestrator.
 The proposal is 33 NVIDIA DGX Spark units in three columns of eleven, six agent roles each,
 198 roles total. Three things about that need separating.
 
-**The number 33 is a brand decision, not an engineering one.** That is fine — it is memorable,
+**The number 33 is a brand decision, not an engineering one.** That is fine: it is memorable,
 it maps to the 33-Day Challenge, and 3×11 is a good visual. But it should be recognised as a
 constraint chosen for narrative reasons, and the engineering should be sized independently.
 If the workload needs 4 machines, buying 33 is a marketing expense, and should be budgeted
@@ -193,7 +195,7 @@ Our workload does **not** obviously benefit from that. Six agents analysing a ba
 *embarrassingly parallel* problem: many independent small jobs, not one huge model. The
 right mental model is:
 
-> **33 independent workers pulling from a shared job queue** — not one machine with 33× the memory.
+> **33 independent workers pulling from a shared job queue**, not one machine with 33× the memory.
 
 That is far easier to build, far easier to scale incrementally, and degrades gracefully when
 a node dies. It also means you can start with one node and add more without re-architecting.
@@ -216,7 +218,7 @@ analysis:
 
 The anti-duplication rule: **Discovery may not see Validation's out-of-sample window.** If it
 does, the whole validation step becomes theatre. This is a data-access boundary, and it
-should be enforced by which node can read which dataset — not by convention.
+should be enforced by which node can read which dataset, not by convention.
 
 ---
 
@@ -227,7 +229,7 @@ possible, so it keeps working.** Complexity gets added only where it buys someth
 
 | Layer | Choice | Why this, not the alternative |
 |---|---|---|
-| **Research engine** | Python 3.9+, stdlib only | Zero install friction; anyone can verify the run. Pandas/NumPy add real value at scale but not yet — and every dependency is a reason the demo breaks a year from now. |
+| **Research engine** | Python 3.9+, stdlib only | Zero install friction; anyone can verify the run. Pandas/NumPy add real value at scale but not yet: and every dependency is a reason the demo breaks a year from now. |
 | **Agents (now)** | Deterministic rules | Reproducible, free, testable. You cannot debug an LLM pipeline whose non-LLM parts are also unverified. Get the skeleton right first. |
 | **Agents (next)** | LLM as *interpreter*, rules as *computer* | The model reads news and explains findings; the numbers stay in code. This bounds cost and eliminates hallucinated arithmetic. |
 | **Risk** | Pure functions, no I/O, no model | Testable in isolation, provably terminal. |
@@ -239,14 +241,14 @@ possible, so it keeps working.** Complexity gets added only where it buys someth
 
 ### What we deliberately did not use
 
-- **A frontend framework** — the site is content, not an application.
-- **A charting library** — two line charts.
-- **A vector DB / RAG stack** — there is no corpus yet. Adding retrieval before having
+- **A frontend framework**, the site is content, not an application.
+- **A charting library**, two line charts.
+- **A vector DB / RAG stack**, there is no corpus yet. Adding retrieval before having
   documents worth retrieving is architecture theatre.
-- **An agent framework** — the orchestration is ~150 lines and we need exact control over
+- **An agent framework**, the orchestration is ~150 lines and we need exact control over
   who sees what. Frameworks optimise for agents *sharing* context; our core requirement is
   that they *don't*.
-- **A database** — see above.
+- **A database**, see above.
 
 Each of these is a reasonable *later* decision. None of them is a *now* decision, and adding
 them now would make the system harder to verify without making it better.
@@ -257,11 +259,11 @@ them now would make the system harder to verify without making it better.
 
 Built so the next phases don't require rewrites:
 
-- **`data.py`** — one function returns `list[Candle]`. A new venue is a new function.
-- **`agents.py`** — add a role by implementing `analyze(ctx) → AgentReport`.
-- **`pipeline.py`** — `_form_proposal` is the committee rule, isolated and replaceable.
-- **`risk.py`** — limits are module constants; changing one is a one-line diff with a
+- **`data.py`**, one function returns `list[Candle]`. A new venue is a new function.
+- **`agents.py`**, add a role by implementing `analyze(ctx) → AgentReport`.
+- **`pipeline.py`**, `_form_proposal` is the committee rule, isolated and replaceable.
+- **`risk.py`**, limits are module constants; changing one is a one-line diff with a
   visible git history. That is deliberate: **risk limits should be hard to change quietly.**
-- **`Lab`** — instantiating multiple `Lab` objects with different seeds or committee rules is
+- **`Lab`**, instantiating multiple `Lab` objects with different seeds or committee rules is
   how the Discovery/Validation split will be implemented, and how the 33-node job queue will
   distribute work.

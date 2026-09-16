@@ -1,5 +1,7 @@
 # Shadow mode needs nothing beyond the Python standard library.
-# venue solana: signs Jupiter swaps (Python 3.9+).
+# venue uniswap (default): signs Robinhood Chain transactions locally.
+eth-account>=0.13,<1
+# venue solana (optional): signs Jupiter swaps.
 solders>=0.21,<1
 # venue hyperliquid (optional): official SDK.
 hyperliquid-python-sdk>=0.20,<1

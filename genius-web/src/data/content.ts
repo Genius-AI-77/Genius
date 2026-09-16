@@ -21,7 +21,7 @@ export const STATUS_LABEL: Record<Status, string> = {
 
 export const tickerItems = [
   "The desk is open",
-  "Six agents trading BTC, around the clock",
+  "Six agents trading ETH, around the clock",
   "Real market, real decisions, every one public",
   "Everyone is a Scientist",
   "Build phase 01, building in public",
@@ -193,7 +193,7 @@ export const ledgerRows: { component: string; status: Status; note: string }[] =
   { component: "Paper broker (fees + slippage)", status: "impl", note: "All P&L reported after costs" },
   { component: "Decision journal & audit metrics", status: "impl", note: "JSONL, one entry per cycle" },
   { component: "Lab console & this site", status: "impl", note: "Static, no backend required" },
-  { component: "Market data", status: "impl", note: "Live BTC-USD candles, trade tape and level-2 depth from a public exchange API; synthetic fallback if unreachable" },
+  { component: "Market data", status: "impl", note: "Live ETH-USD candles, trade tape and level-2 depth from a public exchange API; synthetic fallback if unreachable" },
   { component: "Fundamental news inputs", status: "impl", note: "Live headlines, scored and time-gated so no bar sees its future" },
   { component: "LLM reasoning layer", status: "plan", note: "Next up. Models will read and interpret; every number and limit stays in code" },
   { component: "Order-book depth / DOM", status: "impl", note: "Level-2 snapshot each run, recorded to disk; continuous streaming is planned" },

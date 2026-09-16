@@ -3,7 +3,7 @@
 
 Usage:
     python3 lab/run_demo.py            # synthetic market (deterministic, offline)
-    python3 lab/run_demo.py --live     # real BTC-USD: candles + trade tape + L2 book
+    python3 lab/run_demo.py --live     # real ETH-USD: candles + trade tape + L2 book
                                        # + RSS headlines. Falls back per-input on
                                        # failure and records what was real.
 
@@ -46,7 +46,7 @@ def main() -> None:
 
     if use_live:
         print("fetching live data (Coinbase public API + RSS)…")
-        bundle = fetch_live("BTC-USD", bars=BARS_NEEDED,
+        bundle = fetch_live("ETH-USD", bars=BARS_NEEDED,
                             record_dir=os.path.join(ROOT, "lab", "data"))
         if bundle and len(bundle.candles) >= WARMUP + 2 * BARS_PER_SESSION:
             candles, book = bundle.candles, bundle.book
@@ -100,13 +100,13 @@ def main() -> None:
             "source": inputs["candles"],
             "inputs": inputs,
             "provenance": provenance,
-            "instrument": "BTC-USD",
-            "mode": "PAPER / SIMULATED — no real capital, no live execution",
+            "instrument": "ETH-USD",
+            "mode": "PAPER / SIMULATED: no real capital, no live execution",
             "sessions": sessions_run,
             "bars_per_session": BARS_PER_SESSION,
             "generated_at": int(t0),
             "execution": "paper",           # paper | shadow | live
-            "venue": "BTC-USD",
+            "venue": "ETH-USD",
             "bar_seconds": 3600,
             "last_bar_ts": last.ts,
             "next_cycle_ts": last.ts + 2 * 3600,
