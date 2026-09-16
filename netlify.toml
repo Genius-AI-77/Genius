@@ -1,5 +1,5 @@
 # Netlify: deploy the zero-build static site from this repo.
-# Works with a PRIVATE GitHub repo — Netlify reads it via its GitHub app;
+# Works with a PRIVATE GitHub repo, Netlify reads it via its GitHub app;
 # only the published pages are public.
 [build]
   publish = "site"

@@ -1,10 +1,10 @@
 /**
- * Wallet connect for Robinhood Chain — READ-ONLY BY CONSTRUCTION.
+ * Wallet connect for Robinhood Chain, READ-ONLY BY CONSTRUCTION.
  *
  * Can: discover browser wallets (EIP-6963 + window.ethereum fallback), read
  * the public address (eth_requestAccounts), offer a network switch (a wallet
  * setting), request a *message* signature the user sees in full (ownership
- * proof — costs nothing, moves nothing), read ETH and GENIUS balances from
+ * proof, costs nothing, moves nothing), read ETH and GENIUS balances from
  * the chain's public RPC.
  *
  * Cannot, and no edit may add: request a transaction signature of any kind,

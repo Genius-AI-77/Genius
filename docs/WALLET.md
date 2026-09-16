@@ -56,7 +56,7 @@ under `site/`, `genius-web/src/` and `genius-web/public/` and fails if any of th
 - EVM: `eth_sendTransaction`, `eth_signTransaction`, `eth_sendRawTransaction`, `eth_sign`,
   `eth_signTypedData` in any version, `wallet_requestPermissions`, `wallet_sendCalls`,
   `.approve(`, `setApprovalForAll`, `permit(`, `increaseAllowance`, the `approve` selector
-- Solana (kept so the rule survives a chain change): `signTransaction`,
+- Generic (kept so the rule survives a chain change): `signTransaction`,
   `signAllTransactions`, `signAndSendTransaction`, `sendTransaction`,
   `SystemProgram.transfer`, `Transaction(`, `VersionedTransaction`
 - Key material of any kind: `privateKey`, `secretKey`, `mnemonic`, `Keypair.`, or an input

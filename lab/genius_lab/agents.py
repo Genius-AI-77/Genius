@@ -6,7 +6,7 @@ reproducible and free to run. Each agent exposes the same contract:
     report = agent.analyze(context) -> AgentReport
 
 An optional LLM hook (`narrator`) can later wrap each report with a natural-
-language rationale (PLANNED — the numbers and limits never come from the LLM;
+language rationale (PLANNED, the numbers and limits never come from the LLM;
 the LLM only interprets, per the project's "math is enforced by code" rule).
 
 Stances: "long" | "short" | "flat". "flat" (no trade) is a first-class output.
@@ -40,8 +40,8 @@ class AgentReport:
 class MarketContext:
     candles: list[Candle]       # history up to and including "now"
     bar_index: int              # index of the current bar in the full series
-    news: object | None = None  # NewsBias — real headlines, time-gated (or None → fixtures)
-    book: object | None = None  # Book — live depth snapshot; only valid for the latest bar
+    news: object | None = None  # NewsBias, real headlines, time-gated (or None → fixtures)
+    book: object | None = None  # Book, live depth snapshot; only valid for the latest bar
 
     @property
     def now(self) -> Candle:
@@ -86,7 +86,7 @@ def atr(candles: list[Candle], period: int = 14) -> float | None:
 # --- 1. Fundamental Analyst --------------------------------------------------
 
 class FundamentalAnalyst:
-    """Inputs: headlines with source + timestamp — live RSS when the context
+    """Inputs: headlines with source + timestamp, live RSS when the context
     carries a NewsBias (IMPLEMENTED, lexicon-scored, time-gated), fixtures
     otherwise (SIMULATED). Output: directional bias with the events behind it.
     Evaluation: was the bias directionally consistent with forward returns?
@@ -257,7 +257,7 @@ class OrderFlowAnalyst:
         )
 
 
-# --- 4. Risk Manager (interface — hard limits live in risk.py) ---------------
+# --- 4. Risk Manager (interface, hard limits live in risk.py) ---------------
 
 class RiskManagerAgent:
     """The reporting face of the risk engine. The binding checks are pure code
@@ -285,7 +285,7 @@ class RiskManagerAgent:
         )
 
 
-# --- 5. Execution Specialist (interface — mechanics live in execution.py) -----
+# --- 5. Execution Specialist (interface, mechanics live in execution.py) -----
 
 class ExecutionSpecialistAgent:
     """Reports on execution conditions (spread/fees/slippage model)."""
@@ -311,7 +311,7 @@ class ExecutionSpecialistAgent:
         )
 
 
-# --- 6. Research & Audit Analyst (interface — metrics live in audit.py) -------
+# --- 6. Research & Audit Analyst (interface, metrics live in audit.py) -------
 
 class ResearchAuditAgent:
     """Reports current after-cost performance and strategy-health flags."""

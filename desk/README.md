@@ -9,12 +9,11 @@ desk/
 ├── set_ca.py           publish the token contract address to the site after checking it on chain
 ├── config.json         mode, venue, asset, books, limits, publish targets (no secrets)
 ├── install.sh          one-shot Ubuntu server install (systemd service + CLI)
-├── requirements.txt    eth-account (Robinhood Chain venue); solders and hyperliquid-python-sdk optional
+├── requirements.txt    eth-account (live mode only)
 ├── genius_desk/
 │   ├── config.py       config + secrets loading (secrets never logged)
 │   ├── evm_venue.py    UniswapVenue: Uniswap v3 on Robinhood Chain, raw JSON-RPC, signed locally
-│   ├── venue.py        ShadowVenue (paper at the live mark) + HyperliquidVenue (optional)
-│   ├── solana_venue.py SolanaVenue (optional, Jupiter spot)
+│   ├── venue.py        ShadowVenue (paper at the live mark) and the Venue interface
 │   ├── runner.py       the cycle, books, persistence, reconciliation, kill switch
 │   └── publish.py      site payload + git push (the host redeploys)
 ├── tests/              13 offline tests: limits, isolation, kill, restart, reconcile, secrets
@@ -172,6 +171,3 @@ mismatch, because `--init-cash` is the deliberate step that adopts it.
   USDG pool is deep, but Coinbase has no candles for it. Switching `"asset"` to `NVDA` works
   today for execution; the analysts need an on-chain candle feed first, which is planned.
 - Public RPC endpoints are rate-limited. For a server, set `DESK_RPC_URL` to a dedicated one.
-- Optional venues: `solana_venue.py` (Jupiter spot) and `HyperliquidVenue` remain in the tree
-  and are selectable with `"venue": "solana"` or `"hyperliquid"`; they are not the default
-  and are not what the site describes.

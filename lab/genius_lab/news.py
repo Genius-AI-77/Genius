@@ -3,7 +3,7 @@
 IMPLEMENTED: live headlines from public RSS feeds (no key, no account), scored
              with a small keyword lexicon into a directional bias in [-1, 1].
 PLANNED:     an LLM reads the same headlines and writes the rationale. The
-             lexicon is deliberately crude and deliberately transparent — every
+             lexicon is deliberately crude and deliberately transparent, every
              score can be traced to the exact words that produced it.
 
 Time discipline: `NewsBias.bias_at(ts)` only sees items published *before* ts.
@@ -22,7 +22,7 @@ from dataclasses import asdict, dataclass
 from email.utils import parsedate_to_datetime
 
 FEEDS = [
-    # (name, url) — general crypto + macro. All public RSS/Atom, no auth.
+    # (name, url), general crypto + macro. All public RSS/Atom, no auth.
     ("CoinDesk", "https://www.coindesk.com/arc/outboundfeeds/rss/"),
     ("Cointelegraph", "https://cointelegraph.com/rss"),
     ("Federal Reserve", "https://www.federalreserve.gov/feeds/press_all.xml"),
@@ -47,9 +47,9 @@ LEXICON = {
     "sec charges": -0.6, "investigation": -0.3,
 }
 
-# Headlines that mention none of these are ignored — they carry no directional read.
-_ASSET_TERMS = ("bitcoin", "btc", "crypto", "fed", "federal reserve", "rates",
-                "inflation", "cpi", "etf", "sec", "treasury")
+# Headlines that mention none of these are ignored: they carry no directional read.
+_ASSET_TERMS = ("ethereum", "ether", "eth", "bitcoin", "btc", "crypto", "stablecoin", "nvidia", "nvda",
+                "fed", "federal reserve", "rates", "inflation", "cpi", "etf", "sec", "treasury")
 
 
 @dataclass

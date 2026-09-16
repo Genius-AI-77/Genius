@@ -9,8 +9,8 @@
     python3 desk/run_desk.py --probe           tiny round-trip test trade (proves the wiring)
     python3 desk/run_desk.py --once --offline  synthetic market, no network (tests/dev)
 
-Mode (shadow | live) comes from desk/config.json. Live needs DESK_AGENT_KEY and
-DESK_ACCOUNT in the secrets file; the CLI never prints them.
+Mode (shadow | live) comes from desk/config.json. Live needs DESK_EVM_KEY in the
+secrets file (made by --new-evm-wallet); the CLI never prints it.
 """
 
 from __future__ import annotations
@@ -42,39 +42,6 @@ def status(desk: Desk) -> str:
                         if p else "flat") + f"   last: {b.last_decision}")
     lines.append(f"  {'TOTAL':<7} equity ${sum(desk.venue.equity(n) for n in desk.books):8.2f}")
     return "\n".join(lines)
-
-
-def new_wallet() -> int:
-    """Generate the desk wallet ON THIS MACHINE and store its key in the secrets
-    file with owner-only permissions. Nothing but the public address is printed.
-    Refuses to overwrite an existing key."""
-    from solders.keypair import Keypair
-    path = os.environ.get("DESK_SECRETS_FILE", os.path.expanduser("~/.genius-desk/secrets.env"))
-    existing = ""
-    if os.path.exists(path):
-        existing = open(path).read()
-        if "DESK_WALLET_KEY=" in existing and existing.split("DESK_WALLET_KEY=", 1)[1].split("\n", 1)[0].strip():
-            print(f"a wallet key already exists in {path}; not overwriting.")
-            print("if you really want a new one, delete that file first.")
-            return 1
-    kp = Keypair()
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    try:
-        os.chmod(os.path.dirname(path), 0o700)
-    except PermissionError:
-        pass   # shared dirs like /tmp; the file itself is still mode 600
-    lines = [l for l in existing.splitlines() if not l.startswith("DESK_WALLET_KEY=")]
-    lines.append(f"DESK_WALLET_KEY={kp}")
-    with open(path, "w") as f:
-        f.write("\n".join(lines) + "\n")
-    os.chmod(path, 0o600)
-    print("desk wallet created.")
-    print(f"  key file : {path}  (mode 600, owner only; never printed)")
-    print(f"  address  : {kp.pubkey()}")
-    print()
-    print("send the pilot SOL to that address. this wallet exists only in that file:")
-    print("back the file up somewhere safe if you want to be able to recover the funds.")
-    return 0
 
 
 def new_evm_wallet() -> int:
@@ -112,8 +79,7 @@ def main() -> int:
     g.add_argument("--kill", action="store_true")
     g.add_argument("--resume", action="store_true")
     g.add_argument("--probe", action="store_true", help="tiny round-trip test trade to prove the wiring")
-    g.add_argument("--init-cash", action="store_true", help="solana: convert wallet SOL to USDC and split across books (run once after funding)")
-    g.add_argument("--new-wallet", action="store_true", help="solana: create the desk wallet inside the secrets file; prints only the public address")
+    g.add_argument("--init-cash", action="store_true", help="adopt fees that landed in the wallet: wrap spare ETH, sell to USDG, split across books")
     g.add_argument("--new-evm-wallet", action="store_true", help="robinhood chain: create the 0x desk wallet (fees + trading) inside the secrets file; prints only the public address")
     ap.add_argument("--offline", action="store_true", help="synthetic market, no network")
     ap.add_argument("--no-publish", action="store_true")
@@ -121,8 +87,6 @@ def main() -> int:
     args = ap.parse_args()
 
     cfg = DeskConfig.load(args.config)
-    if args.new_wallet:
-        return new_wallet()
     if args.new_evm_wallet:
         return new_evm_wallet()
     secrets = Secrets.load()
@@ -144,14 +108,14 @@ def main() -> int:
         desk.resume(); print("resumed."); print(status(desk)); return 0
     if args.init_cash:
         if not hasattr(desk.venue, "init_cash"):
-            print("init-cash only applies to the solana and uniswap venues in live mode"); return 1
+            print("init-cash only applies in live mode"); return 1
         r = desk.venue.init_cash(); desk.save()
         print(json.dumps(r, indent=1)); print(status(desk)); after(desk, {"bar": "init"}); return 0
     if args.probe:
         r = desk.probe()
         print(json.dumps(r, indent=1))
         if r.get("tx_open"):
-            base = {"uniswap": "https://robinhoodchain.blockscout.com/tx/", "solana": "https://solscan.io/tx/"}.get(cfg.venue, "https://app.hyperliquid.xyz/explorer/tx/")
+            base = "https://robinhoodchain.blockscout.com/tx/"
             print(f"\nopen : {base}{r['tx_open']}\nclose: {base}{r['tx_close']}")
         after(desk, {"bar": "probe"}); return 0 if r.get("ok") else 1
     if args.once:

@@ -21,7 +21,7 @@ const STATUS_CLASS: Record<Status, string> = {
   block: "text-ink-2 border-line-2 bg-white/[.03]",
 };
 
-/** Status chip — implemented / simulated / planned / blocked. */
+/** Status chip, implemented / simulated / planned / blocked. */
 export function Pill({ status, children }: { status: Status; children?: ReactNode }) {
   return (
     <span

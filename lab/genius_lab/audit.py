@@ -1,8 +1,8 @@
-"""Research & Audit — decision journal and after-cost evaluation.
+"""Research & Audit, decision journal and after-cost evaluation.
 
 IMPLEMENTED. Every cycle writes a journal entry (JSONL) whether or not a trade
 happened; agreement between agents is recorded but never treated as proof of
-correctness — outcomes are evaluated after costs, against the logged thesis.
+correctness, outcomes are evaluated after costs, against the logged thesis.
 """
 
 from __future__ import annotations

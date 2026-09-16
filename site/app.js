@@ -1,4 +1,4 @@
-/* GENIUS site — page behaviour. Kept external so the CSP can forbid inline scripts. */
+/* GENIUS site, page behaviour. Kept external so the CSP can forbid inline scripts. */
 (function(){
   var D=window.GENIUS_DATA; if(!D||!D.metrics) return;
   var m=D.metrics, meta=D.meta;

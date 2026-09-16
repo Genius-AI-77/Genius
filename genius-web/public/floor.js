@@ -132,7 +132,7 @@
     // LED ticker strip along the top
     ctx.fillStyle = '#000'; ctx.fillRect(0, 4, W, 9);
     var price = D.equity_curve && D.equity_curve.length ? D.equity_curve[D.equity_curve.length - 1].price : 0;
-    var tick = 'BTC ' + money(price) + '   EQUITY ' + money(d.equity || 0) + '   SESSION ' + (d.session_pnl >= 0 ? '+' : '') + money(d.session_pnl || 0) +
+    var tick = ((d.coin || 'ETH') + ' ') + money(price) + '   EQUITY ' + money(d.equity || 0) + '   SESSION ' + (d.session_pnl >= 0 ? '+' : '') + money(d.session_pnl || 0) +
                '   ' + (m.execution === 'live' ? 'LIVE EXECUTION' : m.execution === 'shadow' ? 'SHADOW MODE' : 'PAPER EXECUTION') + '   REAL MARKET, REAL DECISIONS   ';
     var tw = textW(tick) + 8, off = (t / 40) % tw;
     ctx.save(); ctx.beginPath(); ctx.rect(0, 4, W, 9); ctx.clip();
@@ -298,7 +298,7 @@
       h += '</div>';
     } else if (pos) {
       h += '<div class="fl-pos"><div class="fl-pos-h"><b class="' + (pos.side === 'long' ? 'fl-up' : 'fl-down') + '">' + pos.side.toUpperCase() + '</b> ' +
-           esc(pos.qty) + ' BTC <span class="' + (pos.unrealized >= 0 ? 'fl-up' : 'fl-down') + '">' + (pos.unrealized >= 0 ? '+' : '') + money(pos.unrealized) + '</span></div>' +
+           esc(pos.qty) + ' ' + esc(d.coin || 'ETH') + ' <span class="' + (pos.unrealized >= 0 ? 'fl-up' : 'fl-down') + '">' + (pos.unrealized >= 0 ? '+' : '') + money(pos.unrealized) + '</span></div>' +
            '<div class="fl-pos-r"><span>Entry</span><b>' + money(pos.entry) + '</b><span>Mark</span><b>' + money(pos.mark) + '</b>' +
            '<span>Stop</span><b>' + (pos.stop ? money(pos.stop) : 'none') + '</b><span>Held</span><b>' + esc(pos.bars_held) + ' bars</b></div></div>';
     } else {

@@ -65,10 +65,6 @@ def _reports(desk: Desk, metrics: dict) -> list[dict]:
     out.append({"agent": "HERMES", "role": "Execution Specialist", "stance": "flat",
                 "confidence": 0.5, "status": "IMPLEMENTED",
                 "findings": [("Live venue: Uniswap v3 on Robinhood Chain, one desk wallet that also receives the token fees, every swap on Blockscout. Long only; short reads stand aside."
-                              if mode == "live" and desk.cfg.venue == "uniswap" else
-                              "Live venue: Solana spot through Jupiter, one dedicated wallet, every swap on Solscan. Long only; short reads stand aside."
-                              if mode == "live" and desk.cfg.venue == "solana" else
-                              "Live venue: Hyperliquid, one sub-account per book, exchange-side stops, agent key that cannot withdraw."
                               if mode == "live" else
                               "Shadow venue: paper fills at the live mark with the real venue's fee model. Nothing sent."),
                              f"Modelled cost {desk.venue.fee_bps:.0f} bps per side; live P&L uses real amounts."],
@@ -84,9 +80,9 @@ def _reports(desk: Desk, metrics: dict) -> list[dict]:
     return out
 
 
-_VENUE_NAME = {"uniswap": "Robinhood Chain", "solana": "Solana", "hyperliquid": "Hyperliquid"}
-_VENUE_LONG = {"uniswap": "Robinhood Chain (Uniswap v3 spot)", "solana": "Solana (Jupiter spot)", "hyperliquid": "Hyperliquid"}
-_VENUE_MODE = {"uniswap": "real swaps on Robinhood Chain", "solana": "real swaps on Solana", "hyperliquid": "real orders on Hyperliquid"}
+_VENUE_NAME = {"uniswap": "Robinhood Chain"}
+_VENUE_LONG = {"uniswap": "Robinhood Chain (Uniswap v3 spot)"}
+_VENUE_MODE = {"uniswap": "real swaps on Robinhood Chain"}
 
 
 def build_payload(desk: Desk) -> dict:
@@ -135,7 +131,7 @@ def build_payload(desk: Desk) -> dict:
                                + ". " + (f"Real inputs: {', '.join(real)}." if real else "")),
         },
         "metrics": metrics,
-        "desk": {"equity": round(equity, 2), "session_pnl": round(session_pnl, 2),
+        "desk": {"coin": cfg.coin, "equity": round(equity, 2), "session_pnl": round(session_pnl, 2),
                  "position": first_pos, "books": books,
                  "last_decision": ({"decision": lc.get("decision"), "detail": lc.get("detail", "")[:200],
                                     "ts": lc.get("ts")} if lc else None),

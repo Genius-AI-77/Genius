@@ -129,7 +129,7 @@ Two further consequences, both material:
    is a bot closing a two-cent gap. Treating it as conviction is a category error.
 
 > **The implication for GENIUS is worth stating plainly, because it is slightly awkward:**
-> $GENIUS will itself trade on an AMM. So the lab's order-flow research and the lab's own
+> the GENIUS token will itself trade on an AMM. So the lab's order-flow research and the lab's own
 > token market are **structurally different domains**. Skill in one does not transfer to the
 > other, and we should never imply that it does.
 
@@ -137,8 +137,8 @@ Two further consequences, both material:
 
 ## 3. Recommended initial market
 
-**BTC perpetual futures on one major centralised venue** (or BTC-USD spot on Coinbase for
-the very first phase).
+**At the time: BTC perpetual futures on one major centralised venue** (or BTC-USD spot on Coinbase for
+the very first phase). Outcome, September 2026: ETH spot on Uniswap v3, Robinhood Chain, with ETH-USD candles from Coinbase as the data source.
 
 Why this and not the alternatives:
 
@@ -181,20 +181,21 @@ before anything else in the data track.
 
 ---
 
-## 5. The proposed $GENIUS / NVDA-exposure pair
+## 5. The proposed GENIUS / NVDA-exposure pair
 
 ### The candidate
 
-The intent is a trading pair between $GENIUS and a tokenised asset tracking NVIDIA (NVDA).
-The candidate identified in research:
+The intent is a trading pair between the GENIUS token and a tokenised asset tracking NVIDIA (NVDA).
+The candidate identified in the original research, and what it became:
 
 | Attribute | Finding | Confidence |
 |---|---|---|
-| Token | **NVDAx** (NVIDIA tokenized stock, xStock) | High |
+| Token, at the time | **NVDAx** (NVIDIA tokenized stock, xStock) | High |
 | Issuer | **Backed Finance**, Switzerland; issued by Backed Assets, Jersey | High |
 | Instrument type | Tracker certificate, collateralised 1:1 by NVDA shares held with a regulated custodian | High |
-| Chain | Solana (SPL); an ERC-20 form also referenced | High |
-| Liquidity | ~**$1M** across major Solana DEXes | Medium, **volatile, must be re-checked at decision time** |
+| Chain, at the time | an SPL form; an ERC-20 form also referenced | High |
+| Liquidity, at the time | about $1M across DEXes | Medium, volatile |
+| **Outcome, September 2026** | **NVDA Robinhood Token** (`0xd060…9EEC`) on **Robinhood Chain**, issued by Robinhood; Uniswap v3 NVDA/USDG pool with about $1.9M USDG and 25k NVDA at the time of checking; blocklist model, any wallet may hold it; pausable by the issuer | High, verified on chain |
 | Mint address | **Not verified** |, |
 
 ### What must be verified before this is more than an intention
@@ -219,7 +220,7 @@ At roughly $1M of DEX liquidity, NVDAx is a **thin quote asset**. Consequences:
 - Slippage on meaningful size would be severe in both directions.
 - A pair against a thin asset can be manipulated more cheaply than one against a deep
   stablecoin, the attack cost scales with the *shallower* side.
-- NVDAx's own peg depends on the issuer's operations. A $GENIUS/NVDAx pair inherits
+- A stock token's peg depends on the issuer's operations. A GENIUS/NVDA pair inherits
   **two** sets of risk: ours and theirs.
 
 **Recommendation:** if the NVDA-exposure pair is wanted for narrative reasons, and it is a

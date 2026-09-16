@@ -1,4 +1,4 @@
-"""Paper broker — execution mechanics with realistic costs.
+"""Paper broker, execution mechanics with realistic costs.
 
 IMPLEMENTED (paper only). Live execution is BLOCKED pending: venue decision,
 API keys, trading capital, and jurisdiction/compliance review.
@@ -66,7 +66,7 @@ class PaperBroker:
 
         Scales with volatility. When ATR is unavailable (early bars) it falls
         back to a flat 2 bps of price. `slippage_k = 0` disables the model
-        entirely — used by tests to isolate fee accounting.
+        entirely, used by tests to isolate fee accounting.
         """
         if self.slippage_k <= 0:
             return 0.0

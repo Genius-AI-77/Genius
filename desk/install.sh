@@ -6,7 +6,7 @@
 # What it does:
 #   1. installs python3 + venv + git
 #   2. clones the repo to /opt/genius (or updates it)
-#   3. creates a venv and installs the Hyperliquid SDK (needed only for live mode)
+#   3. creates a venv and installs eth-account (needed only for live mode)
 #   4. creates /etc/genius-desk/secrets.env, mode 600, with placeholders
 #   5. installs a systemd service `genius-desk` that runs the hourly loop
 #   6. installs the `genius-desk` command: status | kill | resume | once | logs
@@ -37,7 +37,7 @@ if [[ -d "$APP_DIR/.git" ]]; then git -C "$APP_DIR" pull -q; else git clone -q "
 echo "[3/6] python venv"
 $PY -m venv "$APP_DIR/.venv"
 "$APP_DIR/.venv/bin/pip" install -q --upgrade pip
-"$APP_DIR/.venv/bin/pip" install -q -r "$APP_DIR/desk/requirements.txt" || echo "  (hyperliquid sdk install failed; shadow mode still works, retry before going live)"
+"$APP_DIR/.venv/bin/pip" install -q -r "$APP_DIR/desk/requirements.txt" || echo "  (pip install failed; shadow mode still works, retry before going live)"
 
 echo "[4/6] secrets file"
 mkdir -p "$(dirname "$SECRETS")"

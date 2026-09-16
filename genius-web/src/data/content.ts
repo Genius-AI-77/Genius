@@ -2,9 +2,9 @@
  * All site copy lives here, separated from markup.
  *
  * Edit this file (or ask Lovable to edit it) to change wording, add a ledger
- * row, or adjust a stat — without touching layout components.
+ * row, or adjust a stat, without touching layout components.
  *
- * IMPORTANT — the status labels below are load-bearing, not decoration.
+ * IMPORTANT, the status labels below are load-bearing, not decoration.
  * GENIUS commits publicly to labelling every component as implemented,
  * simulated, planned or blocked. Do not upgrade a status here unless the
  * underlying thing actually changed.
@@ -177,7 +177,7 @@ export const riskLimits = [
   { k: "Concurrent positions", v: "1" },
 ];
 
-/** Fallback values only — the Experiment section overrides these from /console/data.js at runtime. */
+/** Fallback values only, the Experiment section overrides these from /console/data.js at runtime. */
 export const experimentStats = [
   { v: "792", k: "Research cycles", n: "33 sessions × 24 bars" },
   { v: "287", k: "No-trade calls", n: "Discipline, on the record" },

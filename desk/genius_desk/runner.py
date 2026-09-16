@@ -35,8 +35,7 @@ from genius_lab.news import live_news                       # noqa: E402
 from genius_lab.risk import RiskEngine, TradeProposal       # noqa: E402
 
 from .config import DeskConfig, Secrets                     # noqa: E402
-from .venue import HyperliquidVenue, ShadowVenue, Venue
-from .solana_venue import SolanaVenue           # noqa: E402
+from .venue import ShadowVenue, Venue
 from .evm_venue import UniswapVenue             # noqa: E402
 
 
@@ -89,23 +88,12 @@ class Desk:
                 raise RuntimeError("live mode needs DESK_EVM_KEY in the secrets file (run --new-evm-wallet)")
             self.venue = UniswapVenue(names, self.secrets.evm_key, self.secrets.rpc_url,
                                       asset=cfg.asset, pool_fee=cfg.pool_fee, fee_token=cfg.fee_token or None)
-        elif cfg.mode == "live" and cfg.venue == "solana":
-            if not self.secrets.wallet_key:
-                raise RuntimeError("live mode needs DESK_WALLET_KEY in the secrets file")
-            self.venue = SolanaVenue(names, self.secrets.wallet_key, self.secrets.rpc_url)
         elif cfg.mode == "live":
-            if not (self.secrets.agent_key and self.secrets.account):
-                raise RuntimeError("live mode needs DESK_AGENT_KEY and DESK_ACCOUNT in the secrets file")
-            missing = [b.name for b in cfg.books if b.name not in cfg.hl_books]
-            if missing:
-                raise RuntimeError(f"config.hl_books is missing sub-account addresses for {missing}")
-            self.venue = HyperliquidVenue({b.name: cfg.hl_books[b.name] for b in cfg.books},
-                                          self.secrets.account, self.secrets.agent_key,
-                                          coin=cfg.coin, testnet=self.secrets.testnet)
+            raise RuntimeError(f"unknown live venue {cfg.venue!r}; the desk trades on 'uniswap'")
         else:
             self.venue = ShadowVenue(names, cfg.starting_cash_per_book,
                                      mark=self.state.get("last_mark", 0.0) or 0.0)
-            self.venue.long_only = cfg.venue in ("solana", "uniswap")   # shadow mirrors the real venue
+            self.venue.long_only = True                    # shadow mirrors the real venue: spot, long only
         if self.state.get("venue"):
             self.venue.restore(self.state["venue"])
 

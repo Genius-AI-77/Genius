@@ -1,13 +1,13 @@
 """Market data layer.
 
 IMPLEMENTED: synthetic regime-switching market generator (deterministic, seeded).
-IMPLEMENTED: live BTC-USD data from Coinbase Exchange's public API — no key needed:
+IMPLEMENTED: live ETH-USD data from Coinbase Exchange's public API, no key needed:
                • hourly candles, paged back far enough for a full 33-session run
                • the recent trade tape with aggressor side → real buy/sell delta
                • a level-2 order-book snapshot → real depth for the Order Flow agent
 IMPLEMENTED: a recorder that persists every live fetch to lab/data/ so the
              archive of tape + depth grows with each run (depth is free live and
-             expensive historically — every unrecorded day must later be bought).
+             expensive historically, every unrecorded day must later be bought).
 
 All live fetches fail soft: they return None and the caller falls back to
 synthetic data, and the run's metadata records exactly which inputs were real.
@@ -53,7 +53,7 @@ class Trade:
     ts: float
     price: float
     size: float
-    aggressor: str   # "buy" | "sell" — the side that crossed the spread
+    aggressor: str   # "buy" | "sell", the side that crossed the spread
 
 
 @dataclass
@@ -90,7 +90,7 @@ class Book:
         return b, a
 
     def walls(self, n: int = 3) -> dict:
-        """Largest single resting levels on each side — candidate absorption points."""
+        """Largest single resting levels on each side, candidate absorption points."""
         return {
             "bids": sorted(self.bids, key=lambda x: -x[1])[:n],
             "asks": sorted(self.asks, key=lambda x: -x[1])[:n],
@@ -200,7 +200,7 @@ def _parse_iso(s: str) -> float:
     return datetime.fromisoformat(s).timestamp()
 
 
-def live_candles(product: str = "BTC-USD", granularity: int = 3600,
+def live_candles(product: str = "ETH-USD", granularity: int = 3600,
                  bars: int = 300) -> list[Candle] | None:
     """Fetch `bars` most-recent candles, paging back in API-cap-sized windows.
 
@@ -248,14 +248,14 @@ def trade_from_row(r: dict) -> Trade:
                  aggressor="sell" if r["side"] == "buy" else "buy")
 
 
-def live_trades(product: str = "BTC-USD", span_hours: float = 6.0,
+def live_trades(product: str = "ETH-USD", span_hours: float = 6.0,
                 max_pages: int = 80, per_page: int = 1000) -> list[Trade] | None:
     """Fetch the recent trade tape, paging back via `cb-after` until it spans
-    `span_hours` (or max_pages). BTC-USD prints ~1000 trades every 5–10 min,
-    so covering the last few hourly bars takes tens of pages — fine for a
+    `span_hours` (or max_pages). ETH-USD prints several hundred trades every 5 to 10 min,
+    so covering the last few hourly bars takes tens of pages, fine for a
     daily run, and every page lands in the recorder.
 
-    Aggressor mapping — this is the detail that gets order-flow wrong if
+    Aggressor mapping, this is the detail that gets order-flow wrong if
     misread: Coinbase's `side` is the MAKER's side. A trade with side="buy"
     means a resting buy order was hit, i.e. the aggressor SOLD. So:
         side == "buy"  → aggressor = "sell"
@@ -292,7 +292,7 @@ def apply_tape(candles: list[Candle], trades: list[Trade],
 
     The candle's total volume stays authoritative (it is the exchange's own
     figure); the tape supplies the buy/sell *share*. A bar is marked `tape=True`
-    only when the oldest trade we hold predates the bar's open — a partially
+    only when the oldest trade we hold predates the bar's open, a partially
     covered bar would report a delta that is silently wrong.
     Returns the number of bars upgraded to real tape data.
     """
@@ -321,7 +321,7 @@ def apply_tape(candles: list[Candle], trades: list[Trade],
     return upgraded
 
 
-def live_book(product: str = "BTC-USD", band_pct: float = 0.02) -> Book | None:
+def live_book(product: str = "ETH-USD", band_pct: float = 0.02) -> Book | None:
     """Level-2 aggregated book, trimmed to ±band_pct of mid.
 
     The endpoint returns the whole book (tens of thousands of levels); depth
@@ -403,7 +403,7 @@ FUNDAMENTAL_FIXTURES = [
     (180, -0.5, "Macro: hotter-than-expected CPI print pressures risk assets", "fixture:cpi", "2025-09-08"),
     (320, 0.4, "Large exchange announces institutional custody expansion", "fixture:custody", "2025-09-14"),
     (520, -0.3, "Regulatory hearing scheduled; headline risk elevated", "fixture:hearing", "2025-09-22"),
-    (700, 0.5, "Sovereign wealth fund discloses BTC allocation", "fixture:swf", "2025-09-29"),
+    (700, 0.5, "Sovereign wealth fund discloses crypto allocation", "fixture:swf", "2025-09-29"),
 ]
 
 
@@ -439,7 +439,7 @@ class LiveBundle:
         }
 
 
-def fetch_live(product: str = "BTC-USD", bars: int = 300,
+def fetch_live(product: str = "ETH-USD", bars: int = 300,
                record_dir: str | None = None) -> LiveBundle | None:
     """One-shot live fetch: candles + tape + book, tape overlaid, optionally recorded."""
     candles = live_candles(product, bars=bars)

@@ -87,8 +87,8 @@ class UniswapVenue(Venue):
         self.book_names = list(books)
         self.b: dict[str, dict] = {n: {"usdc": 0.0, "sol": 0.0, "entry": 0.0, "stop": None,
                                        "since_ts": 0, "entry_usdc": 0.0} for n in books}
-        # field names kept identical to the Solana venue so state, publish and tests
-        # read the same shape: "usdc" = cash (USDG), "sol" = asset units.
+        # field names are generic on purpose so state, publish and tests read one
+        # shape: "usdc" = cash (USDG), "sol" = asset units.
         self.fills: list[Fill] = []
         self.closed: list[Closed] = []
         self._mark = 0.0
@@ -118,7 +118,7 @@ class UniswapVenue(Venue):
     def _erc20_balance(self, token: str, dec: int) -> float:
         return self._uint(self._call(token, SEL["balanceOf"] + _addr(self.address))) / 10 ** dec
 
-    def usdc_balance(self) -> float:            # name kept for shape parity with SolanaVenue
+    def usdc_balance(self) -> float:            # cash balance (USDG); generic name, see above
         return self._erc20_balance(self.cash, self.cash_dec)
 
     def sol_balance(self) -> float:             # asset units

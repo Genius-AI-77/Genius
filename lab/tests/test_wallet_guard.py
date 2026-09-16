@@ -4,7 +4,7 @@ The site's wallet integration is read-only by construction: it may ask a
 wallet for a public address and for a *message* signature, and nothing else.
 A site that can request a transaction signature can, if compromised, drain a
 wallet. This test scans every shipped front-end source and fails if any
-transaction-signing or fund-moving method name appears — so the guarantee on
+transaction-signing or fund-moving method name appears, so the guarantee on
 the public page ("this site never requests a transaction signature") is
 enforced by the build, not by a promise.
 
@@ -21,7 +21,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 SCAN_DIRS = ["site", os.path.join("genius-web", "src"), os.path.join("genius-web", "public")]
 SCAN_EXT = (".js", ".ts", ".tsx", ".html", ".mjs")
 
-# EVM + Solana method names that can move funds or grant spending permission.
+# Wallet method names that can move funds or grant spending permission.
 # Allowed on purpose: eth_accounts / eth_requestAccounts (read the public address),
 # personal_sign (a human-readable message, cannot authorise anything on chain),
 # wallet_switchEthereumChain / wallet_addEthereumChain (a wallet setting).
@@ -31,7 +31,6 @@ FORBIDDEN = [
     r"\.approve\(", r"setApprovalForAll", r"permit\(", r"increaseAllowance", r"0x095ea7b3",
     r"signTransaction", r"signAllTransactions", r"signAndSendTransaction",
     r"sendTransaction", r"signAndSendAllTransactions",
-    r"solana:signTransaction", r"solana:signAndSendTransaction",
     r"SystemProgram\.transfer", r"createTransferInstruction", r"Transaction\(",
     r"VersionedTransaction",
 ]
@@ -109,9 +108,9 @@ class WalletIsReadOnly(unittest.TestCase):
         for name in ("index.html", os.path.join("console", "index.html")):
             html = open(os.path.join(ROOT, "site", name), encoding="utf-8").read()
             self.assertFalse(re.search(r"<script(?![^>]*\bsrc=)[^>]*>", html),
-                             f"{name} has an inline <script> — the CSP would block it")
+                             f"{name} has an inline <script>, the CSP would block it")
             self.assertFalse(re.search(r"\son\w+\s*=", html),
-                             f"{name} has an inline event handler — the CSP would block it")
+                             f"{name} has an inline event handler, the CSP would block it")
 
 
 if __name__ == "__main__":

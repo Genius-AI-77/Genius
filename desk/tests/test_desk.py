@@ -137,15 +137,14 @@ class DeskBehaviour(unittest.TestCase):
         self.assertEqual(len(p["desk"]["books"]), 3)
         self.assertEqual([r["agent"] for r in p["reports"]], ["ATLAS", "EUCLID", "FLUX", "VETO", "HERMES", "LEDGER"])
         blob = json.dumps(p)
-        for word in ("DESK_AGENT_KEY", "x-access-token", "secret"):
+        for word in ("DESK_EVM_KEY", "x-access-token", "secret"):
             self.assertNotIn(word, blob)
 
     def test_secrets_repr_redacts(self):
-        s = Secrets(agent_key="0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318",
-                    account="0x1111111111111111111111111111111111111111",
+        s = Secrets(evm_key="0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318",
                     git_remote="https://x-access-token:ghp_abc@github.com/x/y.git")
         self.assertNotIn("4c0883", repr(s)); self.assertNotIn("ghp_", str(s))
-        self.assertIn("agent_key=set", repr(s))
+        self.assertIn("evm_key=set", repr(s))
 
 
 class ShadowVenueMaths(unittest.TestCase):

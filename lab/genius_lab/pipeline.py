@@ -1,10 +1,10 @@
-"""Pipeline orchestrator — one research cycle per bar.
+"""Pipeline orchestrator, one research cycle per bar.
 
 Flow per cycle:
   1. Fundamental / Technical / Order Flow analysts produce reports.
   2. A committee rule forms a proposal ONLY when Technical and Order Flow
      stances agree (and Fundamental does not strongly oppose). Agreement is
-     logged, not trusted — the audit loop judges outcomes after costs.
+     logged, not trusted, the audit loop judges outcomes after costs.
   3. The Risk Engine (pure code) reviews the proposal. Its veto is final.
   4. The Execution Specialist manages approved orders (fees + slippage).
   5. Research & Audit journals everything, including NO_TRADE cycles.
@@ -146,7 +146,7 @@ class Lab:
                      bars_per_session: int = 24, news=None, book=None) -> dict:
         """Replay bar by bar. `news` is time-gated internally so no cycle sees
         a headline from its future; `book` is a *now* snapshot and is only
-        handed to the final cycle — giving it to earlier bars would be look-ahead."""
+        handed to the final cycle, giving it to earlier bars would be look-ahead."""
         last = len(candles) - 1
         for i in range(warmup, len(candles)):
             if (i - warmup) % bars_per_session == 0:

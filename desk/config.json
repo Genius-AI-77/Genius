@@ -35,11 +35,6 @@
     "git_branch": "main"
   },
   "coin": "ETH",
-  "hl_books": {
-    "ATLAS": "",
-    "EUCLID": "",
-    "FLUX": ""
-  },
   "venue": "uniswap",
   "asset": "WETH",
   "pool_fee": 500,

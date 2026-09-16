@@ -1,4 +1,4 @@
-/* GENIUS — wallet connect for Robinhood Chain. READ-ONLY BY CONSTRUCTION.
+/* GENIUS, wallet connect for Robinhood Chain. READ-ONLY BY CONSTRUCTION.
  *
  * What this file can do:
  *   • discover installed browser wallets (EIP-6963 announcements, with the
@@ -13,7 +13,7 @@
  *
  * What this file cannot do, and no future edit may add:
  *   • request a transaction signature of any kind. The site therefore has no
- *     way to move funds or approve transfers — the mechanism behind
+ *     way to move funds or approve transfers, the mechanism behind
  *     every "wallet drainer" scam. A test in lab/tests fails the build if the
  *     transaction-signing method names ever appear in this codebase.
  *   • see, ask for, or store a private key or seed phrase. There is no such
@@ -248,7 +248,7 @@
   });
   document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && open) { open = false; render(); } });
 
-  // Silent reconnect to the wallet used last time — never prompts.
+  // Silent reconnect to the wallet used last time, never prompts.
   window.addEventListener('load', function () {
     discover();
     var last = null; try { last = localStorage.getItem(LS_KEY); } catch (e) {}

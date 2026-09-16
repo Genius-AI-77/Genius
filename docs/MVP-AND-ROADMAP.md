@@ -187,7 +187,7 @@ subject is real.
 | 4 | **How GENIUS reads a market.** | Now | The cycle, end to end |
 | 5 | **The agent that can say no.** | Now | The veto is arithmetic. Show the code. This is the credibility piece. |
 | 6 | **Our first public experiment.** | Now | Published including the loss, the piece that sets the standard |
-| 7 | **What $GENIUS represents.** | Before any token discussion | What it is and is not, in plain words |
+| 7 | **What the GENIUS token represents.** | Before any token discussion | What it is and is not, in plain words |
 | 8 | **The 33-Day Challenge.** | Phase 2 start | A commitment to publication, not to profit |
 
 All eight are live on the site today, sections 01 to 09.

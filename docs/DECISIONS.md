@@ -12,7 +12,9 @@ Ordered by how soon they block work.
 
 ## D1, Initial market and venue 🔴 *blocks Phase 1*
 
-**Recommendation: BTC perpetual futures (or BTC-USD spot) on one major centralised venue.**
+**Recommendation at the time: BTC perpetual futures (or BTC-USD spot) on one major centralised venue.**
+
+**Outcome (September 2026): ETH spot on Uniswap v3, Robinhood Chain, long only, from the wallet that receives the token fees. See `desk/README.md`.**
 
 Free L2 depth and aggressor-tagged trades, a genuine order book so the order-flow toolkit is
 actually valid, 24/7 hours that suit a 33-consecutive-day challenge, and enough depth that
@@ -142,7 +144,7 @@ The reasoning:
 - Legal review in the relevant jurisdictions, token classification, the NVDA-tracker pair,
   and public claims about simulated results
 - No presale, no allocation promises, no whitelist before that review completes
-- The $GENIUS / NVDAx pair verified against the issuer's own documentation, not aggregators
+- The GENIUS / NVDA pair verified against the issuer's own documentation, not aggregators
   (`DATA-AND-ORDERFLOW.md` §5), and my recommendation there is that a deep stablecoin pair
   should be primary, with the NVDA pair secondary for narrative
 
@@ -193,5 +195,5 @@ applied, and the status ledger updated on the same day a status changes.
 | Agent names (ATLAS, EUCLID, FLUX, VETO, HERMES, LEDGER) | Memorable, role-descriptive, brandable | Rename freely, they are strings |
 | Dark / volt-green brand direction | Matches the reference material you provided | CSS variables in one block at the top of each page |
 | One position at a time | Removes correlation risk while the pipeline is unproven | A risk-engine change, once Phase 3 justifies it |
-| BTC as the demo instrument | Free data, deep, 24/7 | One function in `data.py` |
+| ETH as the demo instrument | Free data, deep, 24/7 | One function in `data.py` |
 | Published run is a *losing* run | A lab that only shows winners is not a lab | Re-seed and cherry-pick, but I'd argue hard against it |

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GENIUS Lab — runs the 33-session challenge end to end.
+"""GENIUS Lab, runs the 33-session challenge end to end.
 
 Usage:
     python3 lab/run_demo.py            # synthetic market (deterministic, offline)
@@ -13,7 +13,7 @@ Outputs:
     site/console/data.js               # data consumed by the lab console page
     genius-web/public/console/data.js  # same, for the React/Lovable copy (if present)
 
-`site/` is the deployable folder — see DEPLOY.md.
+`site/` is the deployable folder, see DEPLOY.md.
 """
 
 from __future__ import annotations
@@ -55,14 +55,14 @@ def main() -> None:
             inputs["book"] = "live" if book else "none"
             provenance = bundle.provenance()
         else:
-            print("  candles unavailable — falling back to synthetic market")
+            print("  candles unavailable, falling back to synthetic market")
         news = live_news(cache_dir=os.path.join(ROOT, "lab", "data"))
         if news and news.items:
             inputs["news"] = f"live:rss ({len(news.items)} items)"
             provenance["news"] = news.summary()
         else:
             news = None
-            print("  news feeds unavailable — falling back to fixtures")
+            print("  news feeds unavailable, falling back to fixtures")
 
     if candles is None:
         candles = synthetic_candles(BARS_NEEDED, seed=33)
@@ -116,6 +116,7 @@ def main() -> None:
         },
         "metrics": metrics,
         "desk": {
+            "coin": "ETH",
             "equity": round(b.equity, 2),
             "session_pnl": round(b.equity - session_start_eq, 2),
             "position": position,
