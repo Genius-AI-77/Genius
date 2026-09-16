@@ -18,7 +18,7 @@ export default {
         ink: "#f0f3f2",
         "ink-2": "#9aa5a7",
         "ink-3": "#616c6f",
-        /* validated chart pair — see docs/ARCHITECTURE.md */
+        /* validated chart pair, see docs/ARCHITECTURE.md */
         "chart-price": "#00a2b8",
         "chart-equity": "#71a10f",
       },

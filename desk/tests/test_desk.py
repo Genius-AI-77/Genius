@@ -141,9 +141,9 @@ class DeskBehaviour(unittest.TestCase):
             self.assertNotIn(word, blob)
 
     def test_secrets_repr_redacts(self):
-        s = Secrets(evm_key="0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318",
+        s = Secrets(evm_key="0x1111111111111111111111111111111111111111111111111111111111111111",
                     git_remote="https://x-access-token:ghp_abc@github.com/x/y.git")
-        self.assertNotIn("4c0883", repr(s)); self.assertNotIn("ghp_", str(s))
+        self.assertNotIn("1111111111", repr(s)); self.assertNotIn("ghp_", str(s))
         self.assertIn("evm_key=set", repr(s))
 
 

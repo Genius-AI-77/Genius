@@ -4,7 +4,7 @@
     python3 serve.py            # http://localhost:4173/
     python3 serve.py 8080       # custom port
 
-Serves the `site/` folder as the web root — exactly the folder you deploy — so
+Serves the `site/` folder as the web root, exactly the folder you deploy, so
 what you see locally is what ships. See DEPLOY.md.
 """
 
@@ -44,7 +44,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     if not os.path.exists(os.path.join(ROOT, "console", "data.js")):
-        print("note: site/console/data.js missing — run `python3 lab/run_demo.py` first\n")
+        print("note: site/console/data.js missing, run `python3 lab/run_demo.py` first\n")
     socketserver.TCPServer.allow_reuse_address = True
     handler = functools.partial(Handler, directory=ROOT)
     with socketserver.TCPServer(("127.0.0.1", PORT), handler) as httpd:

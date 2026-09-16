@@ -1,10 +1,10 @@
-# GENIUS — web
+# GENIUS, web
 
 The GENIUS public site as a **Vite + React + TypeScript + Tailwind** app, structured so
 Lovable's GitHub importer will accept it.
 
 > This folder is self-contained and must be pushed as **its own repository**. Lovable
-> expects a single `package.json` at the repo root and rejects monorepos — so do not push
+> expects a single `package.json` at the repo root and rejects monorepos, so do not push
 > the parent GENIUS folder.
 
 ## Run locally
@@ -19,11 +19,11 @@ Opens on <http://localhost:8080>. Build with `npm run build`, preview with `npm 
 ## Structure
 
 ```
-index.html                 Vite entry — <head>, fonts, meta tags
+index.html                 Vite entry, <head>, fonts, meta tags
 tailwind.config.js         brand tokens: volt, cyan, ink, panel, line…
 src/
 ├── main.tsx
-├── App.tsx                section order — reorder the page here
+├── App.tsx                section order, reorder the page here
 ├── index.css              base layer + .mod / .btn / .dek component classes
 ├── data/content.ts        ALL COPY LIVES HERE  ← edit this to change wording
 └── components/
@@ -71,5 +71,5 @@ build artifact the site needs, so commit it; the daily GitHub Action keeps it fr
 
 The `Status` type in `src/data/content.ts` (`impl` / `sim` / `plan` / `block`) drives the
 badges across the site. GENIUS publicly commits to labelling every component honestly.
-**Do not upgrade a status unless the underlying thing actually changed** — the status
+**Do not upgrade a status unless the underlying thing actually changed**, the status
 ledger is the product, not a legal footnote.

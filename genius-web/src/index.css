@@ -40,7 +40,7 @@
     @apply border-volt;
   }
 
-  /* Alert variant — used for the VETO card and the risk gate step */
+  /* Alert variant, used for the VETO card and the risk gate step */
   .mod-alert {
     border-color: rgba(255, 90, 90, 0.32);
     background: linear-gradient(160deg, #181113, #0f1315 60%);
